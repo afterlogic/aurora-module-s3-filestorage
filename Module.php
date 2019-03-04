@@ -115,7 +115,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return $this->oClient;
 	}	
 
-	protected function getPublicUserId()
+	protected function getUserPublicId()
 	{
 		if (!isset($this->sUserPublicId))
 		{
@@ -222,7 +222,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$sKey = $aData['Key'];
 			list($sPath, $sFile) = \Sabre\Uri\split($aData['Key']);
 
-			$sUserPublicId = $this->getPublicUserId();
+			$sUserPublicId = $this->getUserPublicId();
 			$sPath = substr($sPath, strlen($sUserPublicId));
 /*
 			$oObject = $this->getClient()->HeadObject([
@@ -293,6 +293,24 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		if ($aArgs['Type'] === self::$sStorageType)
 		{
+			$oClient = $this->getClient();
+			if ($oClient)
+			{
+				$sUserPublicId = $this->getUserPublicId();
+				$sPath = $sUserPublicId . $aArgs['Path'].'/'.$aArgs['Name'];
+
+				$result = $oClient->getObject([
+					'Bucket' => $this->sBucket,
+					'Key' => $sPath
+				]);
+				if ($result)
+				{
+					$mResult = \fopen('php://memory','r+');
+					\fwrite($mResult, $result['Body']->getContents());
+					\rewind($mResult);
+				}
+			}
+
 			return true;
 		}
 	}	
@@ -305,7 +323,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function onAfterGetItems($aArgs, &$mResult)
 	{
-		$sUserPublicId = $this->getPublicUserId();
+		$sUserPublicId = $this->getUserPublicId();
 
 		if ($aArgs['Type'] === self::$sStorageType)
 		{
@@ -367,7 +385,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				$mResult = false;
 				
-				$sUserPublicId = $this->getPublicUserId();
+				$sUserPublicId = $this->getUserPublicId();
 
 				$res = $this->getClient()->putObject([
 					'Bucket' => $this->sBucket,
@@ -401,7 +419,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				$Result = false;
 
-				$sUserPublicId = $this->getPublicUserId();
+				$sUserPublicId = $this->getUserPublicId();
 	
 				$Path = $sUserPublicId . $aArgs['Path'].'/'.$aArgs['Name'];
 				$rData = $aArgs['Data'];
@@ -448,7 +466,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			{
 				$mResult = false;
 
-				$sUserPublicId = $this->getPublicUserId();
+				$sUserPublicId = $this->getUserPublicId();
 					
 				$aObjects = [];
 				foreach ($aArgs['Items'] as $aItem)
@@ -477,7 +495,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$mResult = false;
 
-		$sUserPublicId = $this->getPublicUserId();
+		$sUserPublicId = $this->getUserPublicId();
 
 		$sFullFromPath = $this->sBucket . '/' . $sUserPublicId . $sFromPath . '/' . $sOldName;
 		$sFullToPath = $sUserPublicId . $sToPath.'/'.$sNewName;
