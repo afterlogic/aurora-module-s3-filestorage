@@ -1,0 +1,26 @@
+{
+	"Disabled": [
+		false,
+		"bool"
+	],
+    "AccessKey": [
+        "",
+        "string"
+    ],
+    "SecretKey": [
+        "",
+        "string"
+    ],
+    "Region": [
+        "",
+        "string"
+    ],
+    "Host": [
+        "",
+        "string"
+    ],
+    "BucketPrefix": [
+        "",
+        "string"
+    ]
+}
