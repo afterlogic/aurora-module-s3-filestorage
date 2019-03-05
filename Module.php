@@ -219,20 +219,28 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$mResult = false;
 		if ($aData)
 		{
-			$sKey = $aData['Key'];
 			list($sPath, $sFile) = \Sabre\Uri\split($aData['Key']);
 
 			$sUserPublicId = $this->getUserPublicId();
 			$sPath = substr($sPath, strlen($sUserPublicId));
-/*
+
 			$oObject = $this->getClient()->HeadObject([
 				'Bucket' => $this->sBucket,
 				'Key' => $aData['Key'],
 			]);
-*/
+
+			$aMetadata = $oObject->get('Metadata');
+			if (isset($aMetadata['filename']))
+			{
+				$sName = $aMetadata['filename'];
+			}
+			else
+			{
+				$sName = basename($aData['Key']);
+			}
+
 			$bIsFolder = substr($aData['Key'], -1) === '/';
 
-			$sName = basename($aData['Key']);
 			
 			$mResult /*@var $mResult \Aurora\Modules\Files\Classes\FileItem */ = new  \Aurora\Modules\Files\Classes\FileItem();
 			$mResult->IsExternal = true;
@@ -250,10 +258,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 //				$mResult->LastModified =  date("U",strtotime($aData->getServerModified()));
 //			}
 
-			$mResult->FullPath = $mResult->Name !== '' ? $mResult->Path . '/' . $mResult->Name : $mResult->Path ;
-			$mResult->ContentType = \Aurora\System\Utils::MimeContentType($mResult->Name);
+			$mResult->FullPath = $mResult->Id !== '' ? $mResult->Path . '/' . $mResult->Id : $mResult->Path ;
+			$mResult->ContentType = \Aurora\System\Utils::MimeContentType($mResult->Id);
 			
-			$mResult->Thumb = $this->hasThumb($mResult->Name);
+			$mResult->Thumb = $this->hasThumb($mResult->Id);
 
 			if ($mResult->IsFolder)
 			{
@@ -343,7 +351,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$sFilter = 'Contents[?starts_with(Key, `' . $Path . '`)%s]';
 				if (!empty($aArgs['Pattern']))
 				{
-					$sFilter = sprintf($sFilter,  '&& contains(Key, `' . $aArgs['Pattern'] . '`)'); 
+					$sFilter = sprintf($sFilter,  '&& contains(Key, `' . \strtolower($aArgs['Pattern']) . '`)'); 
 				}
 				else
 				{
@@ -386,11 +394,17 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$mResult = false;
 				
 				$sUserPublicId = $this->getUserPublicId();
+				$sName = $aArgs['FolderName'];
+				$sLowercaseName = \strtolower($sName);
+
+				$aMetadata = [
+					'filename' => $sName
+				] ;
 
 				$res = $this->getClient()->putObject([
 					'Bucket' => $this->sBucket,
-					'Key' => $sUserPublicId . $aArgs['Path'].'/'.$aArgs['FolderName'] . '/',
-					'Body' => ''
+					'Key' => $sUserPublicId . $aArgs['Path'].'/'.$sLowercaseName . '/',
+					'Metadata' => $aMetadata
 				]);
 
 				if ($res)
@@ -421,7 +435,9 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 				$sUserPublicId = $this->getUserPublicId();
 	
-				$Path = $sUserPublicId . $aArgs['Path'].'/'.$aArgs['Name'];
+				$sName = $aArgs['Name'];
+				$sLowercaseName = \strtolower($aArgs['Name']);
+				$Path = $sUserPublicId . $aArgs['Path'].'/'.$sLowercaseName;
 				$rData = $aArgs['Data'];
 				if (!is_resource($aArgs['Data']))
 				{
@@ -430,7 +446,14 @@ class Module extends \Aurora\System\Module\AbstractModule
 					rewind($rData);					
 				}
 
-				$aMetadata = isset($aArgs['ExtendedProps']) ? $aArgs['ExtendedProps'] : [];
+				$aMetadata = [
+					'filename' => $sName
+				] ;
+
+				if (isset($aArgs['ExtendedProps']))
+				{
+					$aMetadata['extendedprops'] = \json_encode($aArgs['ExtendedProps']);
+				}
 
 				$res = $this->getClient()->putObject([
 					'Bucket' => $this->sBucket,
@@ -471,8 +494,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$aObjects = [];
 				foreach ($aArgs['Items'] as $aItem)
 				{
+					$sKey = $sUserPublicId . $aItem['Path'].'/'.$aItem['Name'];
+					if ((bool) $aItem['IsFolder'])
+					{
+						$sKey = $sKey . '/';
+					}
 					$aObjects[]= [
-						'Key' => $sUserPublicId . $aItem['Path'].'/'.$aItem['Name']
+						'Key' => $sKey
 					];
 				}
 				
@@ -491,28 +519,48 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}	
 
-	protected function copyObject($sFromPath, $sToPath, $sOldName, $sNewName, $bMove = false)
+	protected function copyObject($sFromPath, $sToPath, $sOldName, $sNewName, $bIsFolder = false, $bMove = false)
 	{
 		$mResult = false;
 
 		$sUserPublicId = $this->getUserPublicId();
 
-		$sFullFromPath = $this->sBucket . '/' . $sUserPublicId . $sFromPath . '/' . $sOldName;
-		$sFullToPath = $sUserPublicId . $sToPath.'/'.$sNewName;
+		$sSuffix = $bIsFolder ? '/' : '';
+
+		$sFullFromPath = $this->sBucket . '/' . $sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix;
+		$sFullToPath = $sUserPublicId . $sToPath.'/'.\strtolower($sNewName) . $sSuffix;
 
 		$oClient = $this->getClient();
+
+		$oObject = $oClient->HeadObject([
+			'Bucket' => $this->sBucket,
+			'Key' => $sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix
+		]);
+		
+		$aMetadata = [];
+		$sMetadataDirective = 'COPY';
+		if ($oObject)
+		{
+			$aMetadata = $oObject->get('Metadata');
+			$aMetadata['filename'] = $sNewName;
+			$sMetadataDirective = 'REPLACE';
+		}
+
 		$res = $oClient->copyObject([
 			'Bucket' => $this->sBucket,
 			'Key' => $sFullToPath,
-			'CopySource' => $sFullFromPath
+			'CopySource' => $sFullFromPath,
+			'Metadata' => $aMetadata,
+			'MetadataDirective' => $sMetadataDirective
 		]);
+
 		if ($res)	
 		{
 			if ($bMove)
 			{
 				$res = $oClient->deleteObject([
 					'Bucket' => $this->sBucket,
-					'Key' => $sUserPublicId . $sFromPath.'/'.$sOldName
+					'Key' => $sUserPublicId . $sFromPath.'/'.$sOldName . $sSuffix
 				]);					
 			}
 			$mResult = true;
@@ -536,7 +584,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oClient = $this->getClient();
 			if ($oClient)
 			{
-				$mResult = $this->copyObject($aArgs['Path'], $aArgs['Path'], $aArgs['Name'], $aArgs['NewName'], true);
+				$mResult = $this->copyObject($aArgs['Path'], $aArgs['Path'], $aArgs['Name'], $aArgs['NewName'], $aArgs['IsFolder'], true);
 			}
 		}
 	}	
@@ -561,7 +609,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				{
 					foreach ($aArgs['Files'] as $aFile)
 					{
-						$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], true);
+						$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder'], true);
 					}
 					$mResult = true;
 				}
@@ -591,7 +639,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				{
 					foreach ($aArgs['Files'] as $aFile)
 					{
-						$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name']);
+						$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder']);
 					}
 					$mResult = true;
 				}
