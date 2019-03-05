@@ -253,6 +253,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 			$mResult->Owner = $sUserPublicId;
 
+			if (isset($aMetadata['extendedprops']))
+			{
+				$mResult->ExtendedProps = \json_decode($aMetadata['extendedprops']);
+			}
+
 //			if (!$mResult->IsFolder)
 //			{
 //				$mResult->LastModified =  date("U",strtotime($aData->getServerModified()));
