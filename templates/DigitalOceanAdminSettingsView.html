@@ -1,0 +1,48 @@
+<div class="panel_top">
+	<h2 class="settings_heading" data-bind="i18n: {'key': '%MODULENAME%/HEADING_SETTINGS_TAB'}"></h2>
+</div>
+<div class="panel_center">
+	<div class="fields">
+		<div class="fieldset">
+			<div class="row" data-bind="visible: isSuperAdmin">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_ACCESS_KEY'}"></span>
+				<span class="value">
+					<input class="input" type="text" data-bind="value: accessKey, valueUpdate: 'afterkeydown', onEnter: save" />
+				</span>
+			</div>
+			<div class="row" data-bind="visible: isSuperAdmin">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_SECRET_KEY'}"></span>
+				<span class="value">
+					<input class="input" type="text" data-bind="value: secretKey, valueUpdate: 'afterkeydown', onEnter: save" />
+				</span>
+			</div>
+			<div class="row">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_REGION'}"></span>
+				<span class="value">
+					<input class="input" type="text" data-bind="value: region, valueUpdate: 'afterkeydown', onEnter: save" />
+				</span>
+			</div>
+			<div class="row" data-bind="visible: isSuperAdmin">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_HOST'}"></span>
+				<span class="value">
+					<input class="input" type="text" data-bind="value: host, valueUpdate: 'afterkeydown', onEnter: save" />
+				</span>
+			</div>
+			<div class="row" data-bind="visible: isSuperAdmin">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_BUCKET_PREFIX'}"></span>
+				<span class="value">
+					<input class="input" type="text" data-bind="value: bucketPrefix, valueUpdate: 'afterkeydown', onEnter: save" />
+				</span>
+			</div>
+		</div>		
+
+		<div class="buttons">
+			<span class="button" data-bind="click: save, visible: !isSaving()">
+				<span data-bind="i18n: {'key': 'COREWEBCLIENT/ACTION_SAVE'}"></span>
+			</span>
+			<span class="button" data-bind="visible: isSaving()">
+				<span data-bind="i18n: {'key': 'COREWEBCLIENT/ACTION_SAVE_IN_PROGRESS'}"></span>
+			</span>
+		</div>
+	</div>
+</div>
