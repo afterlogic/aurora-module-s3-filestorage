@@ -878,7 +878,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 			$sUserPublicId = $this->getUserPublicId();
 
-			$mResult = $this>getClient()->doesObjectExist(
+			$mResult = $this->getClient()->doesObjectExist(
 				$this->sBucket,
 				$sUserPublicId . $Path.'/'.$Name
 			);
