@@ -53,6 +53,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		$this->subscribeEvent('Files::GetItems::before', array($this, 'CheckUrlFile'));
 		$this->subscribeEvent('Files::UploadFile::before', array($this, 'CheckUrlFile'));
 		$this->subscribeEvent('Files::CreateFolder::before', array($this, 'CheckUrlFile'));
+		$this->subscribeEvent('Files::IsFileExists::after', array($this, 'onAfterIsFileExists'));
 
 		$this->subscribeEvent('System::download-file-entry::before', array($this, 'onBeforeDownloadFileEntry'));
 
@@ -785,52 +786,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function onGetSettings($aArgs, &$mResult)
 	{
 		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		
-		if (!empty($oUser))
-		{
-			$aScope = array(
-				'Name' => 'storage',
-				'Description' => $this->i18N('SCOPE_FILESTORAGE'),
-				'Value' => false
-			);
-			if ($oUser->Role === \Aurora\System\Enums\UserRole::SuperAdmin)
-			{
-				$aScope['Value'] = $this->issetScope('storage');
-				$mResult['Scopes'][] = $aScope;
-			}
-			if ($oUser->Role === \Aurora\System\Enums\UserRole::NormalUser)
-			{
-				if ($aArgs['OAuthAccount'] instanceof \Aurora\Modules\OAuthIntegratorWebclient\Classes\Account)
-				{
-					$aScope['Value'] = $aArgs['OAuthAccount']->issetScope('storage');
-				}
-				if ($this->issetScope('storage'))
-				{
-					$mResult['Scopes'][] = $aScope;
-				}
-			}
-		}	
 	}
 	
 	public function onAfterUpdateSettings($aArgs, &$mResult)
 	{
-		$sScope = '';
-		if (isset($aArgs['Scopes']) && is_array($aArgs['Scopes']))
-		{
-			foreach($aArgs['Scopes'] as $aScope)
-			{
-				if ($aScope['Name'] === 'storage')
-				{
-					if ($aScope['Value'])
-					{
-						$sScope = 'storage';
-						break;
-					}
-				}
-			}
-		}
-		$this->setConfig('Scopes', $sScope);
-		$this->saveModuleConfig();
 	}
 
 	public function onBeforeDownloadFileEntry()
@@ -905,5 +864,26 @@ class Module extends \Aurora\System\Module\AbstractModule
 		}
 	}
 
+	/**
+	 * @ignore
+	 * @param array $aArgs Arguments of event.
+	 * @param mixed $mResult Is passed by reference.
+	 */
+	public function onAfterIsFileExists($aArgs, &$mResult)
+	{
+		if ($aArgs['Type'] === self::$sStorageType)
+		{
+			$Path = $aArgs['Path'];
+			$Name = $aArgs['Name'];
 
+			$sUserPublicId = $this->getUserPublicId();
+
+			$mResult = $this>getClient()->doesObjectExist(
+				$this->sBucket,
+				$sUserPublicId . $Path.'/'.$Name
+			);
+
+			return true;
+		}
+	}
 }
