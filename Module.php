@@ -461,12 +461,62 @@ class Module extends \Aurora\System\Module\AbstractModule
 					$aMetadata['extendedprops'] = \json_encode($aArgs['ExtendedProps']);
 				}
 
+				$result = $oClient->createMultipartUpload([
+					'Bucket' => $this->sBucket,
+					'Key' => $Path,
+					'Metadata'     => $aMetadata
+				]);
+				$uploadId = $result['UploadId'];
+				
+				// Upload the file in parts.
+				try 
+				{
+					$partNumber = 1;
+
+					while (!feof($rData)) 
+					{
+						$result = $oClient->uploadPart([
+							'Bucket' => $this->sBucket,
+							'Key' => $Path,
+							'UploadId'   => $uploadId,
+							'PartNumber' => $partNumber,
+							'Body'       => fread($rData, 5 * 1024 * 1024),
+						]);
+						$parts['Parts'][$partNumber] = [
+							'PartNumber' => $partNumber,
+							'ETag' => $result['ETag'],
+						];
+						$partNumber++;
+					}
+					\fclose($rData);
+				} 
+				catch (\Exception $e) 
+				{
+					$result = $oClient->abortMultipartUpload([
+						'Bucket' => $this->sBucket,
+						'Key' => $Path,
+						'UploadId' => $uploadId
+					]);
+				}
+				
+				// Complete the multipart upload.
+				$res = $oClient->completeMultipartUpload([
+					'Bucket' => $this->sBucket,
+					'Key' => $Path,
+					'UploadId' => $uploadId,
+					'MultipartUpload'    => $parts,
+				]);				
+/*
 				$res = $this->getClient()->putObject([
 					'Bucket' => $this->sBucket,
 					'Key' => $Path,
 					'Body' => $rData,
 					'Metadata' => $aMetadata
 				]);
+*/
+
+				
+
 
 				if ($res)
 				{
