@@ -1,5 +1,5 @@
 {
-	"name": "afterlogic/aurora-module-digitalocean-filestorage",
+	"name": "afterlogic/aurora-module-s3-filestorage",
 	"type": "aurora-module",
 	"require": {
 		"php": ">=5.4.0",
@@ -7,6 +7,6 @@
 		"aws/aws-sdk-php": "3.*"
 	},
 	"extra": {
-		"installer-name": "DigitalOceanFilestorage"
+		"installer-name": "S3Filestorage"
 	}
 }
