@@ -5,7 +5,7 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\DigitalOceanFilestorage;
+namespace Aurora\Modules\S3Filestorage;
 
 use Aws\S3\S3Client;
 use GuzzleHttp\RedirectMiddleware;
@@ -19,7 +19,7 @@ use GuzzleHttp\RedirectMiddleware;
  */
 class Module extends \Aurora\System\Module\AbstractModule
 {
-	protected static $sStorageType = 'digitalocean';
+	protected static $sStorageType = 's3';
 	protected $oClient = null;
 	protected $sUserPublicId = null;
 
@@ -229,7 +229,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$mResult[] = [
 				'Type' => self::$sStorageType, 
 				'IsExternal' => true,
-				'DisplayName' => 'Digital Ocean'
+				'DisplayName' => $this->getConfig('DisplayName', 'S3 Storage')
 			];
 		}
 	}
