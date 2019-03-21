@@ -17,7 +17,6 @@ use Aws\S3\S3Client;
  *
  * @package Modules
  */
-//class Module extends \Aurora\System\Module\AbstractModule
 class Module extends \Aurora\Modules\PersonalFiles\Module
 
 {
@@ -91,42 +90,42 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		return $this->aSettings;
 	}
 
-	// /**
-	//  * Updates module's settings - saves them to config.json file.
-	//  * @param string $AccessKey
-	//  * @param string $SecretKey
-	//  * @param string $Region
-	//  * @param string $Host
-	//  * @param string $BucketPrefix
-	//  * @return boolean
-	//  */
-	// public function UpdateSettings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
-	// {
-	// 	$oSettings = $this->GetModuleSettings();
+	 /**
+	  * Updates module's settings - saves them to config.json file.
+	  * @param string $AccessKey
+	  * @param string $SecretKey
+	  * @param string $Region
+	  * @param string $Host
+	  * @param string $BucketPrefix
+	  * @return boolean
+	  */
+	 public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
+	 {
+	 	$oSettings = $this->GetModuleSettings();
 		
-	// 	if (!empty($TenantId))
-	// 	{
-	// 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
-	// 		$oTenant = \Aurora\System\Api::getTenantById($TenantId);
+	 	if (!empty($TenantId))
+	 	{
+	 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+	 		$oTenant = \Aurora\System\Api::getTenantById($TenantId);
 
-	// 		if ($oTenant)
-	// 		{
-	// 			$oSettings->SetTenantValue($oTenant->Name, 'Region', $Region);
-	// 			return $oSettings->SaveTenantSettings($oTenant->Name);
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+	 		if ($oTenant)
+	 		{
+	 			$oSettings->SetTenantValue($oTenant->Name, 'Region', $Region);
+	 			return $oSettings->SaveTenantSettings($oTenant->Name);
+	 		}
+	 	}
+	 	else
+	 	{
+	 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-	// 		$oSettings->SetValue('AccessKey', $AccessKey);
-	// 		$oSettings->SetValue('SecretKey', $SecretKey);
-	// 		$oSettings->SetValue('Region', $Region);
-	// 		$oSettings->SetValue('Host', $Host);
-	// 		$oSettings->SetValue('BucketPrefix', $BucketPrefix);
-	// 		return $oSettings->Save();
-	// 	}
-	// }
+	 		$oSettings->SetValue('AccessKey', $AccessKey);
+	 		$oSettings->SetValue('SecretKey', $SecretKey);
+	 		$oSettings->SetValue('Region', $Region);
+	 		$oSettings->SetValue('Host', $Host);
+	 		$oSettings->SetValue('BucketPrefix', $BucketPrefix);
+	 		return $oSettings->Save();
+	 	}
+	 }
 	
 	protected function getS3Client($endpoint, $bucket_endpoint = false)
 	{

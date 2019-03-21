@@ -17,7 +17,7 @@ var
 /**
 * @constructor
 */
-function CDigitalOceanAdminSettingsView()
+function CS3AdminSettingsView()
 {
 	CAbstractSettingsFormView.call(this, Settings.ServerModuleName);
 	
@@ -33,11 +33,11 @@ function CDigitalOceanAdminSettingsView()
 	/*-- Editable fields */
 }
 
-_.extendOwn(CDigitalOceanAdminSettingsView.prototype, CAbstractSettingsFormView.prototype);
+_.extendOwn(CS3AdminSettingsView.prototype, CAbstractSettingsFormView.prototype);
 
-CDigitalOceanAdminSettingsView.prototype.ViewTemplate = '%ModuleName%_DigitalOceanAdminSettingsView';
+CS3AdminSettingsView.prototype.ViewTemplate = '%ModuleName%_S3AdminSettingsView';
 
-CDigitalOceanAdminSettingsView.prototype.getCurrentValues = function()
+CS3AdminSettingsView.prototype.getCurrentValues = function()
 {
 	return [
 		this.accessKey(),
@@ -48,7 +48,7 @@ CDigitalOceanAdminSettingsView.prototype.getCurrentValues = function()
 	];
 };
 
-CDigitalOceanAdminSettingsView.prototype.revertGlobalValues = function()
+CS3AdminSettingsView.prototype.revertGlobalValues = function()
 {
 	this.accessKey(Settings.AccessKey);
 	this.secretKey(Settings.SecretKey);
@@ -57,7 +57,7 @@ CDigitalOceanAdminSettingsView.prototype.revertGlobalValues = function()
 	this.bucketPrefix(Settings.BucketPrefix);
 };
 
-CDigitalOceanAdminSettingsView.prototype.clearFields = function()
+CS3AdminSettingsView.prototype.clearFields = function()
 {
 	this.accessKey('');
 	this.secretKey('');
@@ -66,7 +66,19 @@ CDigitalOceanAdminSettingsView.prototype.clearFields = function()
 	this.bucketPrefix('');
 };
 
-CDigitalOceanAdminSettingsView.prototype.getParametersForSave = function ()
+/**
+ * Sends a request to the server to save the settings.
+ */
+CS3AdminSettingsView.prototype.save = function ()
+{
+	if (!_.isFunction(this.validateBeforeSave) || this.validateBeforeSave())
+	{
+		this.isSaving(true);
+		Ajax.send(this.sServerModule, 'UpdateS3Settings', this.getParametersForSave(), this.onResponse, this);
+	}
+};
+
+CS3AdminSettingsView.prototype.getParametersForSave = function ()
 {
 	return {
 		'AccessKey': this.accessKey(),
@@ -82,7 +94,7 @@ CDigitalOceanAdminSettingsView.prototype.getParametersForSave = function ()
  * 
  * @param {Object} oParameters Parameters which were saved on the server side.
  */
-CDigitalOceanAdminSettingsView.prototype.applySavedValues = function (oParameters)
+CS3AdminSettingsView.prototype.applySavedValues = function (oParameters)
 {
 	if (this.isSuperAdmin())
 	{
@@ -90,7 +102,7 @@ CDigitalOceanAdminSettingsView.prototype.applySavedValues = function (oParameter
 	}
 };
 
-CDigitalOceanAdminSettingsView.prototype.setAccessLevel = function (sEntityType, iEntityId)
+CS3AdminSettingsView.prototype.setAccessLevel = function (sEntityType, iEntityId)
 {
 	this.iTenantId = (sEntityType === 'Tenant') ? iEntityId : 0;
 	this.visible(sEntityType === '' || sEntityType === 'Tenant');
@@ -98,12 +110,12 @@ CDigitalOceanAdminSettingsView.prototype.setAccessLevel = function (sEntityType,
 };
 
 
-CDigitalOceanAdminSettingsView.prototype.onRouteChild = function (aParams)
+CS3AdminSettingsView.prototype.onRouteChild = function (aParams)
 {
 	this.requestPerTenantSettings();
 };
 
-CDigitalOceanAdminSettingsView.prototype.requestPerTenantSettings = function ()
+CS3AdminSettingsView.prototype.requestPerTenantSettings = function ()
 {
 	if (Types.isPositiveNumber(this.iTenantId))
 	{
@@ -122,4 +134,4 @@ CDigitalOceanAdminSettingsView.prototype.requestPerTenantSettings = function ()
 	}
 };
 
-module.exports = new CDigitalOceanAdminSettingsView();
+module.exports = new CS3AdminSettingsView();

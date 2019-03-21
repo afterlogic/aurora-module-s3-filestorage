@@ -18,9 +18,9 @@ module.exports = function (oAppData) {
 				ModulesManager.run('AdminPanelWebclient', 'registerAdminPanelTab', [
 					function(resolve) {
 						require.ensure(
-							['modules/%ModuleName%/js/views/DigitalOceanAdminSettingsView.js'],
+							['modules/%ModuleName%/js/views/S3AdminSettingsView.js'],
 							function() {
-								resolve(require('modules/%ModuleName%/js/views/DigitalOceanAdminSettingsView.js'));
+								resolve(require('modules/%ModuleName%/js/views/S3AdminSettingsView.js'));
 							},
 							"admin-bundle"
 						);

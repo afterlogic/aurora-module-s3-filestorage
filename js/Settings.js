@@ -7,8 +7,8 @@ var
 ;
 
 module.exports = {
-	ServerModuleName: 'DigitalOceanFilestorage',
-	HashModuleName: 'digitalocean',
+	ServerModuleName: 'S3Filestorage',
+	HashModuleName: 's3-filestorage',
 	
 	AccessKey: '',
 	SecretKey: '',
