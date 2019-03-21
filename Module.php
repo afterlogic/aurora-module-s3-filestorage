@@ -21,7 +21,7 @@ use Aws\S3\S3Client;
 class Module extends \Aurora\Modules\PersonalFiles\Module
 
 {
-	protected static $sStorageType = 's3';
+	protected static $sStorageType = 'personal';
 	protected $oClient = null;
 	protected $sUserPublicId = null;
 
@@ -354,5 +354,40 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$mResult = !($aQuota['Limit'] > 0 && $aQuota['Used'] + $iSize > $aQuota['Limit']);
 			return true;
 		}
-	}	
+	}
+
+	/**
+	 * @ignore
+	 * @param array $aArgs Arguments of event.
+	 * @param mixed $mResult Is passed by reference.
+	 */
+	public function onAfterGetSubModules($aArgs, &$mResult)
+	{
+		array_unshift($mResult, 's3');
+	}
+
+	// /**
+	//  * @ignore
+	//  * @param array $aArgs Arguments of event.
+	//  * @param mixed $mResult Is passed by reference.
+	//  */
+	// public function onAfterRename(&$aArgs, &$mResult)
+	// {
+	// 	if ($this->checkStorageType($aArgs['Type']))
+	// 	{
+	// 		$sUserPiblicId = \Aurora\System\Api::getUserPublicIdById($aArgs['UserId']);
+		
+	// 		$sNewName = \trim(\MailSo\Base\Utils::ClearFileName($aArgs['NewName']));
+	// 		$sNewName = $this->getManager()->getNonExistentFileName($sUserPiblicId, $aArgs['Type'], $aArgs['Path'], $sNewName);
+			
+	// 		$sName = $aArgs['Name'];
+	// 		if ($aArgs['IsFolder'])
+	// 		{
+	// 			$sName = $sName . '/';
+	// 			$sNewName = $sNewName . '/';
+	// 		}
+
+	// 		$mResult = $this->getManager()->rename($sUserPiblicId, $aArgs['Type'], $aArgs['Path'], $sName, $sNewName, $aArgs['IsLink']);
+	// 	}
+	// }	
 }
