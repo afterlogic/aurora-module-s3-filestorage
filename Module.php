@@ -18,7 +18,6 @@ use Aws\S3\S3Client;
  * @package Modules
  */
 class Module extends \Aurora\Modules\PersonalFiles\Module
-
 {
 	protected static $sStorageType = 'personal';
 	protected $oClient = null;
@@ -362,7 +361,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 */
 	public function onAfterGetSubModules($aArgs, &$mResult)
 	{
-		array_unshift($mResult, 's3');
+		array_unshift($mResult, 's3.' . static::$sStorageType);
 	}
 	
 
