@@ -364,29 +364,57 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		array_unshift($mResult, 's3');
 	}
+	
 
-	// /**
-	//  * @ignore
-	//  * @param array $aArgs Arguments of event.
-	//  * @param mixed $mResult Is passed by reference.
-	//  */
-	// public function onAfterRename(&$aArgs, &$mResult)
-	// {
-	// 	if ($this->checkStorageType($aArgs['Type']))
-	// 	{
-	// 		$sUserPiblicId = \Aurora\System\Api::getUserPublicIdById($aArgs['UserId']);
-		
-	// 		$sNewName = \trim(\MailSo\Base\Utils::ClearFileName($aArgs['NewName']));
-	// 		$sNewName = $this->getManager()->getNonExistentFileName($sUserPiblicId, $aArgs['Type'], $aArgs['Path'], $sNewName);
+	protected function isNeedToReturnBody($sPath)
+	{
+		$sMethod = $this->oHttp->GetPost('Method', null);
+
+        return ((string) \Aurora\System\Application::GetPathItemByIndex(2, '') === 'thumb' ||
+			$sMethod === 'SaveFilesAsTempFiles' ||
+			$sMethod === 'GetFilesForUpload'
+		);
+	}
+	/**
+	 * Puts file content to $mResult.
+	 * @ignore
+	 * @param array $aArgs Arguments of event.
+	 * @param mixed $mResult Is passed by reference.
+	 */
+	public function onGetFile($aArgs, &$mResult)
+	{
+		if ($this->checkStorageType($aArgs['Type']))
+		{
+			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
 			
-	// 		$sName = $aArgs['Name'];
-	// 		if ($aArgs['IsFolder'])
-	// 		{
-	// 			$sName = $sName . '/';
-	// 			$sNewName = $sNewName . '/';
-	// 		}
+			try
+			{
+				$oServer = \Afterlogic\DAV\Server::getInstance();
+				$oServer->setUser($sUserPiblicId);
+				$sPath = 'files/' . $aArgs['Type'] . $aArgs['Path'] . '/' . $aArgs['Name'];
+				$oNode = $oServer->tree->getNodeForPath($sPath);		
 
-	// 		$mResult = $this->getManager()->rename($sUserPiblicId, $aArgs['Type'], $aArgs['Path'], $sName, $sNewName, $aArgs['IsLink']);
-	// 	}
-	// }	
+				if ($oNode instanceof \Afterlogic\DAV\FS\S3\File)
+				{
+					if ($this->isNeedToReturnBody($sPath))
+					{
+						$mResult = $oNode->getBody();
+					}
+					else
+					{
+						$sUrl = $oNode->getUrl();
+						\Aurora\Api::Location($sUrl);
+					}
+				}
+			}
+			catch (\Sabre\DAV\Exception\NotFound $oEx)
+			{
+				$mResult = false;
+				header("HTTP/1.0 404 Not Found");
+				die('File not found');
+			}
+			
+			return true;
+		}
+	}	
 }
