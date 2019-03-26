@@ -8,7 +8,6 @@
 namespace Aurora\Modules\S3Filestorage;
 
 use Aws\S3\S3Client;
-//use GuzzleHttp\RedirectMiddleware;
 
 /**
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
@@ -19,7 +18,6 @@ use Aws\S3\S3Client;
  */
 class Module extends \Aurora\Modules\PersonalFiles\Module
 {
-	protected static $sStorageType = 'personal';
 	protected $oClient = null;
 	protected $sUserPublicId = null;
 
@@ -265,18 +263,13 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		
 		if ($aArgs['FromType'] === self::$sStorageType)
 		{
-			$oClient = $this->getClient();
-			if ($oClient)
+			if ($aArgs['ToType'] === $aArgs['FromType'])
 			{
-
-				if ($aArgs['ToType'] === $aArgs['FromType'])
+				foreach ($aArgs['Files'] as $aFile)
 				{
-					foreach ($aArgs['Files'] as $aFile)
-					{
-						$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder'], true);
-					}
-					$mResult = true;
+					$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder'], true);
 				}
+				$mResult = true;
 			}
 			return true;
 		}
@@ -294,19 +287,15 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		
 		if ($aArgs['FromType'] === self::$sStorageType)
 		{
-			$oClient = $this->getClient();
-			if ($oClient)
-			{
-				$mResult = false;
+			$mResult = false;
 
-				if ($aArgs['ToType'] === $aArgs['FromType'])
+			if ($aArgs['ToType'] === $aArgs['FromType'])
+			{
+				foreach ($aArgs['Files'] as $aFile)
 				{
-					foreach ($aArgs['Files'] as $aFile)
-					{
-						$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder']);
-					}
-					$mResult = true;
+					$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder']);
 				}
+				$mResult = true;
 			}
 			return true;
 		}
@@ -321,9 +310,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		if ($aArgs['Type'] === self::$sStorageType)
 		{
-			$oNode = \Afterlogic\DAV\Server::getInstance()->tree->getNodeForPath('files/' . self::$sStorageType);
-
 			$aQuota = [0, 0];
+			$oNode = \Afterlogic\DAV\Server::getInstance()->tree->getNodeForPath('files/' . self::$sStorageType);
 			if ($oNode instanceof \Afterlogic\DAV\FS\S3\Root)
 			{
 				$aQuota = $oNode->getQuotaInfo();
@@ -333,26 +321,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				'Used' => $aQuota[0],
 				'Limit' => $aQuota[1]
 			];
-		}
-	}	
-	
-	/**
-	 * @ignore
-	 * @param array $aArgs Arguments of event.
-	 * @param mixed $mResult Is passed by reference.
-	 */
-	public function onAfterCheckQuota($aArgs, &$mResult)
-	{
-		if ($aArgs['Type'] === self::$sStorageType)
-		{
-			$sType = $aArgs['Type'];
-			$sUserId = $aArgs['UserId'];
-			$iSize = $aArgs['Size'];
-			$aQuota = \Aurora\Modules\Files\Module::Decorator()->GetQuota($sUserId, $sType);
-			$mResult = !($aQuota['Limit'] > 0 && $aQuota['Used'] + $iSize > $aQuota['Limit']);
+
 			return true;
 		}
-	}
+	}	
 
 	/**
 	 * @ignore
