@@ -369,12 +369,11 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				{
 					if ($this->isNeedToReturnBody($sPath))
 					{
-						$mResult = $oNode->getBody();
+						$mResult = $oNode->get();
 					}
 					else
 					{
-						$sUrl = $oNode->getUrl();
-						\Aurora\Api::Location($sUrl);
+						$oNode->get(true);
 					}
 				}
 			}
