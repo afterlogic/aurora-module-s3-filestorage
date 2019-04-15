@@ -40,6 +40,9 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		parent::init();
 
+		$this->subscribeEvent('Core::DeleteTenant::before', array($this, 'onBeforeDeleteTenant'));
+
+
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
 		$this->sBucket = \strtolower($this->sBucketPrefix . $this->getTenantName());
 		$this->sHost = $this->getConfig('Host');
@@ -166,6 +169,31 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				$oS3Client->createBucket([
 					'Bucket' => $this->sBucket
 				]);
+
+				$res = $oS3Client->putBucketCors([
+					'Bucket' => $this->sBucket,
+					'CORSConfiguration' => [
+						'CORSRules' => [
+							[
+								'AllowedHeaders' => [
+									'*',
+								],
+								'AllowedMethods' => [
+									'GET',
+									'PUT',
+									'POST',
+									'DELETE',
+									'HEAD'
+								],
+								'AllowedOrigins' => [
+									(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]"
+								],
+								'MaxAgeSeconds' => 0,
+							],
+						],
+					],
+					'ContentMD5' => '',
+				]);				
 			}
 	
 			$endpoint = "https://".$this->sBucket.".".$this->sRegion.".".$this->sHost;
@@ -337,7 +365,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	}
 	
 
-	protected function isNeedToReturnBody($sPath)
+	protected function isNeedToReturnBody()
 	{
 		$sMethod = $this->oHttp->GetPost('Method', null);
 
@@ -346,6 +374,13 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$sMethod === 'GetFilesForUpload'
 		);
 	}
+
+	protected function isNeedToReturnWithContectDisposition()
+	{
+		$sAction = (string) \Aurora\System\Application::GetPathItemByIndex(2, 'download');
+        return $sAction ===  'download';
+	}
+	
 	/**
 	 * Puts file content to $mResult.
 	 * @ignore
@@ -367,9 +402,13 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 				if ($oNode instanceof \Afterlogic\DAV\FS\S3\File)
 				{
-					if ($this->isNeedToReturnBody($sPath))
+					if ($this->isNeedToReturnBody())
 					{
-						$mResult = $oNode->get();
+						$mResult = $oNode->get(false);
+					}
+					else if ($this->isNeedToReturnWithContectDisposition())
+					{
+						$oNode->getWithContentDisposition();
 					}
 					else
 					{
@@ -385,6 +424,21 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			}
 			
 			return true;
+		}
+	}
+	
+	public function onBeforeDeleteTenant($aArgs, &$mResult)
+	{
+		$oTenant = \Aurora\Modules\Core\Module::Decorator()->GetTenantById($aArgs['TenantId']);
+		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
+		{	
+			$oS3Client = $this->getS3Client(
+				"https://".$this->sRegion.".".$this->sHost
+			);
+
+			$oS3Client->deleteBucket([
+				'Bucket' => \strtolower($this->sBucketPrefix . $oTenant->Name)
+			]);
 		}
 	}	
 }
