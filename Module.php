@@ -44,7 +44,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
-		$this->sBucket = \strtolower($this->sBucketPrefix . $this->getTenantName());
+		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace(' ', '-', $this->getTenantName()));
 		$this->sHost = $this->getConfig('Host');
 		$this->sRegion = $this->getConfig('Region');
 		$this->sAccessKey = $this->getConfig('AccessKey');
@@ -437,7 +437,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			);
 
 			$oS3Client->deleteBucket([
-				'Bucket' => \strtolower($this->sBucketPrefix . $oTenant->Name)
+				'Bucket' => \strtolower($this->sBucketPrefix . \str_replace(' ', '-', Server::getTenantName($oTenant->Name)))
 			]);
 		}
 	}	
