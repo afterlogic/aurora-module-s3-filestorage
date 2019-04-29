@@ -371,7 +371,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		$sMethod = $this->oHttp->GetPost('Method', null);
 
-        return ((string) \Aurora\System\Application::GetPathItemByIndex(2, '') === 'thumb' ||
+        return ((string) \Aurora\System\Router::getItemByIndex(2, '') === 'thumb' ||
 			$sMethod === 'SaveFilesAsTempFiles' ||
 			$sMethod === 'GetFilesForUpload'
 		);
@@ -379,7 +379,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	protected function isNeedToReturnWithContectDisposition()
 	{
-		$sAction = (string) \Aurora\System\Application::GetPathItemByIndex(2, 'download');
+		$sAction = (string) \Aurora\System\Router::getItemByIndex(2, 'download');
         return $sAction ===  'download';
 	}
 	
