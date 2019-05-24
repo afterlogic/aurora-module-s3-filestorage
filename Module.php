@@ -342,7 +342,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		{
 			$aQuota = [0, 0];
 			$oNode = \Afterlogic\DAV\Server::getInstance()->tree->getNodeForPath('files/' . self::$sStorageType);
-			if ($oNode instanceof \Afterlogic\DAV\FS\S3\Root)
+
+			if (is_a($oNode, 'Afterlogic\\DAV\\FS\\S3\\' . ucfirst(self::$sStorageType) . '\\Root'))
 			{
 				$aQuota = $oNode->getQuotaInfo();
 			}
