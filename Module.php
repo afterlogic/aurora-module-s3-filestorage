@@ -434,14 +434,16 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		$oTenant = \Aurora\Modules\Core\Module::Decorator()->GetTenantById($aArgs['TenantId']);
 		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
-		{	
-			$oS3Client = $this->getS3Client(
-				"https://".$this->sRegion.".".$this->sHost
-			);
-
-			$oS3Client->deleteBucket([
-				'Bucket' => \strtolower($this->sBucketPrefix . \str_replace(' ', '-', Server::getTenantName($oTenant->Name)))
-			]);
+		{	try
+			{
+				$oS3Client = $this->getS3Client(
+					"https://".$this->sRegion.".".$this->sHost
+				);
+				$oS3Client->deleteBucket([
+					'Bucket' => \strtolower($this->sBucketPrefix . \str_replace(' ', '-', \Afterlogic\DAV\Server::getTenantName($oTenant->Name)))
+				]);
+			}
+			catch(\Exception $oEx){}
 		}
 	}	
 }
