@@ -432,7 +432,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	
 	public function onBeforeDeleteTenant($aArgs, &$mResult)
 	{
-		$oTenant = \Aurora\Modules\Core\Module::Decorator()->GetTenantById($aArgs['TenantId']);
+		$oTenant = \Aurora\Modules\Core\Module::Decorator()->GetTenantUnchecked($aArgs['TenantId']);
 		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
 		{	try
 			{
