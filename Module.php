@@ -20,6 +20,8 @@ use Aws\S3\S3Client;
  */
 class Module extends \Aurora\Modules\PersonalFiles\Module
 {
+	protected $aRequireModules = ['PersonalFiles'];
+
 	protected $oClient = null;
 	protected $sUserPublicId = null;
 
