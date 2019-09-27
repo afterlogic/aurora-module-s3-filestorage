@@ -293,13 +293,20 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 		
+		$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+		$oServer = \Afterlogic\DAV\Server::getInstance();
+		$oServer->setUser($sUserPiblicId);
+
 		if ($aArgs['FromType'] === self::$sStorageType)
 		{
 			if ($aArgs['ToType'] === $aArgs['FromType'])
 			{
 				foreach ($aArgs['Files'] as $aFile)
 				{
-					$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder'], true);
+					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
+					$oNode = $oServer->tree->getNodeForPath($sPath);		
+
+					$oNode->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder'], true);
 				}
 				$mResult = true;
 			}
@@ -316,6 +323,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	public function onAfterCopy(&$aArgs, &$mResult)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+
+		$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+		$oServer = \Afterlogic\DAV\Server::getInstance();
+		$oServer->setUser($sUserPiblicId);
 		
 		if ($aArgs['FromType'] === self::$sStorageType)
 		{
@@ -325,7 +336,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			{
 				foreach ($aArgs['Files'] as $aFile)
 				{
-					$this->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder']);
+					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
+					$oNode = $oServer->tree->getNodeForPath($sPath);		
+						
+					$oNode->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder']);
 				}
 				$mResult = true;
 			}
