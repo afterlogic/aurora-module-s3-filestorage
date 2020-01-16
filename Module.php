@@ -363,10 +363,20 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			{
 				$aQuota = $oNode->getQuotaInfo();
 			}
+			$iSpaceLimitMb = $aQuota[1];
 
+			$aArgs = [
+				'UserId' => \Aurora\System\Api::getAuthenticatedUserId()
+			];
+			$this->broadcastEvent(
+				'GetUserSpaceLimitMb',
+				$aArgs,
+				$iSpaceLimitMb
+			);
+	
 			$mResult = [
 				'Used' => $aQuota[0],
-				'Limit' => $aQuota[1]
+				'Limit' => $iSpaceLimitMb
 			];
 
 			return true;
