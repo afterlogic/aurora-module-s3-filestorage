@@ -62,7 +62,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 */
 	public function GetSettings($TenantId = null)
 	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
 
 		if (!isset($this->aSettings))
 		{
