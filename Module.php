@@ -293,12 +293,13 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 		
-		$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
-		$oServer = \Afterlogic\DAV\Server::getInstance();
-		$oServer->setUser($sUserPiblicId);
-
 		if ($aArgs['FromType'] === self::$sStorageType)
 		{
+			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+			$oServer = \Afterlogic\DAV\Server::getInstance();
+			$oServer->setUser($sUserPiblicId);
+
+			$mResult = false;
 			if ($aArgs['ToType'] === $aArgs['FromType'])
 			{
 				foreach ($aArgs['Files'] as $aFile)
@@ -310,7 +311,6 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				}
 				$mResult = true;
 			}
-			return true;
 		}
 	}	
 
@@ -324,13 +324,13 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-		$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
-		$oServer = \Afterlogic\DAV\Server::getInstance();
-		$oServer->setUser($sUserPiblicId);
-		
 		if ($aArgs['FromType'] === self::$sStorageType)
 		{
 			$mResult = false;
+
+			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+			$oServer = \Afterlogic\DAV\Server::getInstance();
+			$oServer->setUser($sUserPiblicId);
 
 			if ($aArgs['ToType'] === $aArgs['FromType'])
 			{
@@ -343,7 +343,6 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				}
 				$mResult = true;
 			}
-			return true;
 		}
 	}		
 
@@ -378,8 +377,6 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				'Used' => $aQuota[0],
 				'Limit' => $iSpaceLimitMb
 			];
-
-			return true;
 		}
 	}	
 
