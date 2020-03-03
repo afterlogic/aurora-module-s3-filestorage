@@ -34,6 +34,9 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	protected $aSettings = null;
 
+	protected $oTenantForDelete = null;
+	protected $oUserForDelete = null;
+
 	/***** private functions *****/
 	/**
 	 * Initializes Module.
@@ -45,7 +48,15 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		parent::init();
 
 		$this->subscribeEvent('Core::DeleteTenant::before', array($this, 'onBeforeDeleteTenant'));
+		$this->subscribeEvent('Core::DeleteTenant::after', array($this, 'onAfterDeleteTenant'));
 
+		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
+		$this->subscribeEvent('Core::DeleteUser::after', array($this, 'onAfterDeleteUser'));
+
+		$this->denyMethodsCallByWebApi([
+			'DeleteUserFolder',
+			'GetUserByUUID'
+		]);		
 
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
 		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace(' ', '-', $this->getTenantName()));
@@ -103,8 +114,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	  * @param string $BucketPrefix
 	  * @return boolean
 	  */
-	 public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
-	 {
+	public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
+	{
 	 	$oSettings = $this->GetModuleSettings();
 		
 	 	if (!empty($TenantId))
@@ -129,7 +140,33 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 		$oSettings->SetValue('BucketPrefix', $BucketPrefix);
 	 		return $oSettings->Save();
 	 	}
-	 }
+	}
+
+	public function GetUsersFolders($iTenantId)
+	{
+		$this->sBucket = $this->getBucketForTenant($iTenantId);
+
+		$results = $this->getClient(true)->listObjectsV2([
+			'Bucket' => $this->getBucketForTenant($iTenantId),
+			'Prefix' => '',
+			'Delimiter' => '/'
+		]);
+
+		$aUsersFolders = [];
+		if (is_array($results['CommonPrefixes']) && count($results['CommonPrefixes']) > 0)
+		{
+			foreach ($results['CommonPrefixes'] as $aPrefix)
+			{
+				if (substr($aPrefix['Prefix'], -1) === '/')
+				{
+					$aUsersFolders[] = \rtrim($aPrefix['Prefix'], '/');
+				}
+			}
+		}
+
+		return $aUsersFolders;
+	}
+
 	
 	protected function getS3Client($endpoint, $bucket_endpoint = false)
 	{
@@ -158,9 +195,9 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 * @param string $sType Service type.
 	 * @return \Dropbox\Client
 	 */
-	protected function getClient()
+	protected function getClient($bRenew = false)
 	{
-		if ($this->oClient === null)
+		if ($this->oClient === null || $bRenew)
 		{
 			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
 
@@ -231,6 +268,18 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		}
 
 		return $this->sTenantName;
+	}
+
+	protected function getBucketForTenant($iIdTenant)
+	{
+		$mResult = false;
+		$oTenant = \Aurora\Modules\Core\Module::getInstance()->GetTenantUnchecked($iIdTenant);
+		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
+		{
+			$mResult = \strtolower($this->sBucketPrefix . \str_replace(' ', '-', $oTenant->Name));
+		}
+
+		return $mResult;
 	}
 
 	protected function copyObject($sFromPath, $sToPath, $sOldName, $sNewName, $bIsFolder = false, $bMove = false)
@@ -455,18 +504,64 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	
 	public function onBeforeDeleteTenant($aArgs, &$mResult)
 	{
-		$oTenant = \Aurora\Modules\Core\Module::Decorator()->GetTenantUnchecked($aArgs['TenantId']);
-		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
+		$this->oTenantForDelete = \Aurora\Modules\Core\Module::Decorator()->GetTenantUnchecked($aArgs['TenantId']);
+	}
+
+	public function onAfterDeleteTenant($aArgs, &$mResult)
+	{
+		if ($this->oTenantForDelete instanceof \Aurora\Modules\Core\Classes\Tenant)
 		{	try
 			{
 				$oS3Client = $this->getS3Client(
 					"https://".$this->sRegion.".".$this->sHost
 				);
 				$oS3Client->deleteBucket([
-					'Bucket' => \strtolower($this->sBucketPrefix . \str_replace(' ', '-', \Afterlogic\DAV\Server::getTenantName($oTenant->Name)))
+					'Bucket' => \strtolower($this->sBucketPrefix . \str_replace(' ', '-', \Afterlogic\DAV\Server::getTenantName($this->oTenantForDelete->Name)))
 				]);
+				$this->oTenantForDelete = null;
 			}
 			catch(\Exception $oEx){}
 		}
-	}	
+	}
+	
+	public function onBeforeDeleteUser($aArgs, &$mResult)
+	{
+		if (isset($aArgs['UserId']))
+		{
+			$this->oUserForDelete = \Aurora\System\Api::getUserById($aArgs['UserId']);
+		}
+	}
+
+	public function onAfterDeleteUser($aArgs, &$mResult)
+	{
+		if ($this->oUserForDelete instanceof \Aurora\Modules\Core\Classes\User)
+		{
+			if ($this->DeleteUserFolder($this->oUserForDelete->IdTenant, $this->oUserForDelete->PublicId))
+			{
+				$this->oUserForDelete = null;
+			}
+		}
+	}
+
+	public function DeleteUserFolder($IdTenant, $PublicId)
+	{
+		$bResult = false;
+		try
+		{
+			$oS3Client = $this->getS3Client(
+				"https://".$this->sRegion.".".$this->sHost
+			);
+			$res = $oS3Client->deleteMatchingObjects(
+				$this->getBucketForTenant($IdTenant),
+				$PublicId . '/'
+			);
+			$bResult = true;	
+		}						
+		catch(\Exception $oEx)
+		{
+			$bResult = false;
+		}
+
+		return $bResult;
+	}
 }
