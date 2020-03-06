@@ -532,7 +532,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		}
 	}
 
-	public function onAfterDeleteUser($aArgs, &$mResult)
+	public function onAfterDeleteUser($aArgs, $mResult)
 	{
 		if ($this->oUserForDelete instanceof \Aurora\Modules\Core\Classes\User)
 		{
