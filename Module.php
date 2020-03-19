@@ -59,7 +59,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		]);		
 
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
-		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace(' ', '-', $this->getTenantName()));
+		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->getTenantName()));
 		$this->sHost = $this->getConfig('Host');
 		$this->sRegion = $this->getConfig('Region');
 		$this->sAccessKey = $this->getConfig('AccessKey');
@@ -276,7 +276,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$oTenant = \Aurora\Modules\Core\Module::getInstance()->GetTenantUnchecked($iIdTenant);
 		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
 		{
-			$mResult = \strtolower($this->sBucketPrefix . \str_replace(' ', '-', $oTenant->Name));
+			$mResult = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $oTenant->Name));
 		}
 
 		return $mResult;
@@ -342,24 +342,24 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 		
-		if ($aArgs['FromType'] === self::$sStorageType)
+		if ($this->checkStorageType($aArgs['FromType']))
 		{
 			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
 			$oServer = \Afterlogic\DAV\Server::getInstance();
 			$oServer->setUser($sUserPiblicId);
 
 			$mResult = false;
-			if ($aArgs['ToType'] === $aArgs['FromType'])
-			{
+			// if ($aArgs['ToType'] === $aArgs['FromType'])
+			// {
 				foreach ($aArgs['Files'] as $aFile)
 				{
 					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
 					$oNode = $oServer->tree->getNodeForPath($sPath);		
 
-					$oNode->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder'], true);
+					$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $aFile['Name'], true);
 				}
 				$mResult = true;
-			}
+			// }
 		}
 	}	
 
@@ -373,7 +373,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-		if ($aArgs['FromType'] === self::$sStorageType)
+		if ($this->checkStorageType($aArgs['FromType']))
 		{
 			$mResult = false;
 
@@ -388,7 +388,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
 					$oNode = $oServer->tree->getNodeForPath($sPath);		
 						
-					$oNode->copyObject($aFile['FromPath'], $aArgs['ToPath'], $aFile['Name'], $aFile['Name'], $aFile['IsFolder']);
+					$oNode->copyObjectTo($aArgs['ToType'], $aArgs['ToPath'], $aFile['Name']);
 				}
 				$mResult = true;
 			}
@@ -402,12 +402,12 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 */
 	public function onAfterGetQuota($aArgs, &$mResult)
 	{
-		if ($aArgs['Type'] === self::$sStorageType)
+		if ($this->checkStorageType($aArgs['Type']))
 		{
 			$aQuota = [0, 0];
-			$oNode = \Afterlogic\DAV\Server::getInstance()->tree->getNodeForPath('files/' . self::$sStorageType);
+			$oNode = \Afterlogic\DAV\Server::getInstance()->tree->getNodeForPath('files/' . static::$sStorageType);
 
-			if (is_a($oNode, 'Afterlogic\\DAV\\FS\\S3\\' . ucfirst(self::$sStorageType) . '\\Root'))
+			if (is_a($oNode, 'Afterlogic\\DAV\\FS\\S3\\' . ucfirst(static::$sStorageType) . '\\Root'))
 			{
 				$aQuota = $oNode->getQuotaInfo();
 			}
@@ -516,7 +516,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 					"https://".$this->sRegion.".".$this->sHost
 				);
 				$oS3Client->deleteBucket([
-					'Bucket' => \strtolower($this->sBucketPrefix . \str_replace(' ', '-', \Afterlogic\DAV\Server::getTenantName($this->oTenantForDelete->Name)))
+					'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', \Afterlogic\DAV\Server::getTenantName($this->oTenantForDelete->Name)))
 				]);
 				$this->oTenantForDelete = null;
 			}
