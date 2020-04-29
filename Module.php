@@ -467,17 +467,19 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		if ($this->checkStorageType($aArgs['Type']))
 		{
 			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
-			
+
 			try
 			{
 				$oServer = \Afterlogic\DAV\Server::getInstance();
 				$oServer->setUser($sUserPiblicId);
 				$sPath = 'files/' . $aArgs['Type'] . $aArgs['Path'] . '/' . $aArgs['Name'];
-				$oNode = $oServer->tree->getNodeForPath($sPath);		
+				$oNode = $oServer->tree->getNodeForPath($sPath);
+
+				$sExt = \pathinfo($aArgs['Name'], PATHINFO_EXTENSION);
 
 				if ($oNode instanceof \Afterlogic\DAV\FS\S3\File)
 				{
-					if ($this->isNeedToReturnBody())
+					if ($this->isNeedToReturnBody() || \strtolower($sExt) === 'url')
 					{
 						$mResult = $oNode->get(false);
 					}
