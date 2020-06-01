@@ -11,7 +11,7 @@ use Aws\S3\S3Client;
 
 /**
  * Adds ability to work with S3 file storage inside Aurora Files module.
- * 
+ *
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
  * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
  * @copyright Copyright (c) 2019, Afterlogic Corp.
@@ -40,10 +40,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	/***** private functions *****/
 	/**
 	 * Initializes Module.
-	 * 
+	 *
 	 * @ignore
 	 */
-	public function init() 
+	public function init()
 	{
 		parent::init();
 
@@ -56,7 +56,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$this->denyMethodsCallByWebApi([
 			'DeleteUserFolder',
 			'GetUserByUUID'
-		]);		
+		]);
 
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
 		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->getTenantName()));
@@ -65,10 +65,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$this->sAccessKey = $this->getConfig('AccessKey');
 		$this->sSecretKey = $this->getConfig('SecretKey');
 	}
-	
+
 	/**
 	 * Obtains list of module settings for authenticated user.
-	 * 
+	 *
 	 * @return array
 	 */
 	public function GetSettings($TenantId = null)
@@ -101,7 +101,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				];
 			}
 		}
-		
+
 		return $this->aSettings;
 	}
 
@@ -117,7 +117,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
 	{
 	 	$oSettings = $this->GetModuleSettings();
-		
+
 	 	if (!empty($TenantId))
 	 	{
 	 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
@@ -167,7 +167,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		return $aUsersFolders;
 	}
 
-	
+
 	protected function getS3Client($endpoint, $bucket_endpoint = false)
 	{
 		$signature_version = 'v4';
@@ -186,12 +186,12 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			],
 			'bucket_endpoint' => $bucket_endpoint,
 			'signature_version' => $signature_version
-		]);					
+		]);
 	}
 
 	/**
 	 * Obtains DropBox client if passed $sType is DropBox account type.
-	 * 
+	 *
 	 * @param string $sType Service type.
 	 * @return \Dropbox\Client
 	 */
@@ -205,7 +205,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 			$oS3Client = $this->getS3Client($endpoint);
 
-			if(!$oS3Client->doesBucketExist($this->sBucket)) 
+			if(!$oS3Client->doesBucketExist($this->sBucket))
 			{
 				$oS3Client->createBucket([
 					'Bucket' => $this->sBucket
@@ -234,15 +234,15 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 						],
 					],
 					'ContentMD5' => '',
-				]);				
+				]);
 			}
-	
+
 			$endpoint = "https://".$this->sBucket.".".$this->sRegion.".".$this->sHost;
 			$this->oClient = $this->getS3Client($endpoint, true);
 		}
-		
+
 		return $this->oClient;
-	}	
+	}
 
 	protected function getUserPublicId()
 	{
@@ -299,7 +299,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			'Bucket' => $this->sBucket,
 			'Key' => urldecode($sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix)
 		]);
-		
+
 		$aMetadata = [];
 		$sMetadataDirective = 'COPY';
 		if ($oObject)
@@ -317,14 +317,14 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			'MetadataDirective' => $sMetadataDirective
 		]);
 
-		if ($res)	
+		if ($res)
 		{
 			if ($bMove)
 			{
 				$res = $oClient->deleteObject([
 					'Bucket' => $this->sBucket,
 					'Key' => $sUserPublicId . $sFromPath.'/'.$sOldName . $sSuffix
-				]);					
+				]);
 			}
 			$mResult = true;
 		}
@@ -334,38 +334,39 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	/**
 	 * Moves file if $aData['Type'] is DropBox account type.
-	 * 
+	 *
 	 * @ignore
 	 * @param array $aData
 	 */
 	public function onAfterMove(&$aArgs, &$mResult)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
-		
+
 		if ($this->checkStorageType($aArgs['FromType']))
 		{
-			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+			$UserId = $aArgs['UserId'];
+			$this->CheckAccess($UserId);
+
+			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($UserId);
 			$oServer = \Afterlogic\DAV\Server::getInstance();
 			$oServer->setUser($sUserPiblicId);
 
 			$mResult = false;
-			// if ($aArgs['ToType'] === $aArgs['FromType'])
-			// {
-				foreach ($aArgs['Files'] as $aFile)
-				{
-					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
-					$oNode = $oServer->tree->getNodeForPath($sPath);		
 
-					$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $aFile['Name'], true);
-				}
-				$mResult = true;
-			// }
+			foreach ($aArgs['Files'] as $aFile)
+			{
+				$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
+				$oNode = $oServer->tree->getNodeForPath($sPath);
+
+				$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $aFile['Name'], true);
+			}
+			$mResult = true;
 		}
-	}	
+	}
 
 	/**
 	 * Copies file if $aData['Type'] is DropBox account type.
-	 * 
+	 *
 	 * @ignore
 	 * @param array $aData
 	 */
@@ -377,7 +378,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		{
 			$mResult = false;
 
-			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+			$UserId = $aArgs['UserId'];
+			$this->CheckAccess($UserId);
+
+			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($UserId);
 			$oServer = \Afterlogic\DAV\Server::getInstance();
 			$oServer->setUser($sUserPiblicId);
 
@@ -386,14 +390,14 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				foreach ($aArgs['Files'] as $aFile)
 				{
 					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
-					$oNode = $oServer->tree->getNodeForPath($sPath);		
-						
+					$oNode = $oServer->tree->getNodeForPath($sPath);
+
 					$oNode->copyObjectTo($aArgs['ToType'], $aArgs['ToPath'], $aFile['Name']);
 				}
 				$mResult = true;
 			}
 		}
-	}		
+	}
 
 	/**
 	 * @ignore
@@ -421,13 +425,13 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				$aArgs,
 				$iSpaceLimitMb
 			);
-	
+
 			$mResult = [
 				'Used' => $aQuota[0],
 				'Limit' => $iSpaceLimitMb
 			];
 		}
-	}	
+	}
 
 	/**
 	 * @ignore
@@ -438,7 +442,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		array_unshift($mResult, 's3.' . static::$sStorageType);
 	}
-	
+
 
 	protected function isNeedToReturnBody()
 	{
@@ -455,7 +459,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$sAction = (string) \Aurora\System\Router::getItemByIndex(2, 'download');
         return $sAction ===  'download';
 	}
-	
+
 	/**
 	 * Puts file content to $mResult.
 	 * @ignore
@@ -466,7 +470,10 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		if ($this->checkStorageType($aArgs['Type']))
 		{
-			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($aArgs['UserId']);
+			$UserId = $aArgs['UserId'];
+			$this->CheckAccess($UserId);
+
+			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($UserId);
 
 			try
 			{
@@ -499,11 +506,11 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				header("HTTP/1.0 404 Not Found");
 				die('File not found');
 			}
-			
+
 			return true;
 		}
 	}
-	
+
 	public function onBeforeDeleteTenant($aArgs, &$mResult)
 	{
 		$this->oTenantForDelete = \Aurora\Modules\Core\Module::Decorator()->GetTenantUnchecked($aArgs['TenantId']);
@@ -525,7 +532,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			catch(\Exception $oEx){}
 		}
 	}
-	
+
 	public function onBeforeDeleteUser($aArgs, &$mResult)
 	{
 		if (isset($aArgs['UserId']))
@@ -557,8 +564,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				$this->getBucketForTenant($IdTenant),
 				$PublicId . '/'
 			);
-			$bResult = true;	
-		}						
+			$bResult = true;
+		}
 		catch(\Exception $oEx)
 		{
 			$bResult = false;
