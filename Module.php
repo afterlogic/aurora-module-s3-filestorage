@@ -503,8 +503,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			catch (\Sabre\DAV\Exception\NotFound $oEx)
 			{
 				$mResult = false;
-				header("HTTP/1.0 404 Not Found");
-				die('File not found');
+				echo(\Aurora\System\Managers\Response::GetJsonFromObject('Json', \Aurora\System\Managers\Response::FalseResponse(__METHOD__, 404, 'Not Found')));
+				exit;
 			}
 
 			return true;
