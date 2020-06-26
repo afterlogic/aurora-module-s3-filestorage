@@ -484,9 +484,11 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 				$sExt = \pathinfo($aArgs['Name'], PATHINFO_EXTENSION);
 
+				$bNoRedirect = (isset($aArgs['NoRedirect']) && $aArgs['NoRedirect']) ? true : false;
+
 				if ($oNode instanceof \Afterlogic\DAV\FS\S3\File)
 				{
-					if ($this->isNeedToReturnBody() || \strtolower($sExt) === 'url')
+					if ($this->isNeedToReturnBody() || \strtolower($sExt) === 'url' || $bNoRedirect)
 					{
 						$mResult = $oNode->get(false);
 					}
