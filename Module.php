@@ -227,7 +227,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 									'HEAD'
 								],
 								'AllowedOrigins' => [
-									(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]"
+									(\Aurora\System\Api::isHttps() ? "https" : "http") . "://$_SERVER[HTTP_HOST]"
 								],
 								'MaxAgeSeconds' => 0,
 							],
