@@ -80,13 +80,18 @@ CS3AdminSettingsView.prototype.save = function ()
 
 CS3AdminSettingsView.prototype.getParametersForSave = function ()
 {
-	return {
+	var oParameters = {
 		'AccessKey': this.accessKey(),
 		'SecretKey': this.secretKey(),
 		'Region': this.region(),
 		'Host': this.host(),
 		'BucketPrefix': this.bucketPrefix()
 	};
+	if (Types.isPositiveNumber(this.iTenantId)) // S3 settings tab is shown for particular tenant
+	{
+		oParameters.TenantId = this.iTenantId;
+	}
+	return oParameters;
 };
 
 /**
