@@ -14,7 +14,7 @@ use Aws\S3\S3Client;
  *
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
  * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
- * @copyright Copyright (c) 2019, Afterlogic Corp.
+ * @copyright Copyright (c) 2020, Afterlogic Corp.
  *
  * @package Modules
  */
@@ -52,6 +52,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 		$this->subscribeEvent('Core::DeleteUser::before', array($this, 'onBeforeDeleteUser'));
 		$this->subscribeEvent('Core::DeleteUser::after', array($this, 'onAfterDeleteUser'));
+		
+		$this->subscribeEvent('AddToContentSecurityPolicyDefault', array($this, 'onAddToContentSecurityPolicyDefault'));
 
 		$this->denyMethodsCallByWebApi([
 			'DeleteUserFolder',
@@ -66,6 +68,12 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$this->sSecretKey = $this->getConfig('SecretKey');
 	}
 
+	public function onAddToContentSecurityPolicyDefault($aArgs, &$aAddDefault)
+	{
+		$aAddDefault[] = "https://".$this->sRegion.".".$this->sHost;
+		$aAddDefault[] = "https://".$this->sBucket.".".$this->sRegion.".".$this->sHost;
+	}
+	
 	/**
 	 * Obtains list of module settings for authenticated user.
 	 *
