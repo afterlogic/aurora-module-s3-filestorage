@@ -365,10 +365,9 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			{
 				$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
 				$oNode = $oServer->tree->getNodeForPath($sPath);
-
-				$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $aFile['Name'], true);
+				$sNewName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
+				$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $sNewName, true);
 			}
-			$mResult = true;
 		}
 	}
 
@@ -399,8 +398,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				{
 					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
 					$oNode = $oServer->tree->getNodeForPath($sPath);
-
-					$oNode->copyObjectTo($aArgs['ToType'], $aArgs['ToPath'], $aFile['Name']);
+					$sNewName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
+					$oNode->copyObjectTo($aArgs['ToType'], $aArgs['ToPath'], $sNewName);
 				}
 				$mResult = true;
 			}
