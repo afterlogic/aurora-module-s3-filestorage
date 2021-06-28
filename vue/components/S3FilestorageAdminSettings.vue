@@ -8,37 +8,37 @@
         <q-card-section>
           <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_ACCESS_KEY'"></div>
-            <div class="col-4 q-ml-xl">
+            <div class="col-5">
               <q-input outlined dense class="bg-white" v-model="accessKey" @keyup.enter="save"/>
             </div>
           </div>
           <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_SECRET_KEY'"></div>
-            <div class="col-4 q-ml-xl">
+            <div class="col-5">
               <q-input outlined dense class="bg-white" v-model="secretKey" @keyup.enter="save"/>
             </div>
           </div>
           <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_REGION'"></div>
-            <div class="col-4 q-ml-xl">
+            <div class="col-5">
               <q-input outlined dense class="bg-white" v-model="region" @keyup.enter="save"/>
             </div>
           </div>
           <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_HOST'"></div>
-            <div class="col-4 q-ml-xl">
+            <div class="col-5">
               <q-input outlined dense class="bg-white" v-model="host" @keyup.enter="save"/>
             </div>
           </div>
           <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_BUCKET_PREFIX'"></div>
-            <div class="col-4 q-ml-xl">
+            <div class="col-5">
               <q-input outlined dense class="bg-white" v-model="bucketPrefix" @keyup.enter="save"/>
             </div>
           </div>
         </q-card-section>
       </q-card>
-      <div class="q-pa-md text-right">
+      <div class="q-pt-md text-right">
         <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary" @click="save"
                :label="saving ? $t('COREWEBCLIENT.ACTION_SAVE_IN_PROGRESS') : $t('COREWEBCLIENT.ACTION_SAVE')">
         </q-btn>
