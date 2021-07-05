@@ -15,7 +15,7 @@ export default {
         tabName: 's3-filestorage',
         title: 'S3FILESTORAGE.LABEL_SETTINGS_TAB',
         component () {
-          return import('src/../../../S3Filestorage/vue/components/S3FilestorageAdminSettings')
+          return import('./components/S3FilestorageAdminSettings')
         },
       },
     ]
@@ -32,7 +32,7 @@ export default {
         ],
         title: 'S3FILESTORAGE.LABEL_SETTINGS_TAB',
         component () {
-          return import('src/../../../S3Filestorage/vue/components/S3FilestorageAdminSettingsPerTenant')
+          return import('./components/S3FilestorageAdminSettingsPerTenant')
         }
       }
     ]
