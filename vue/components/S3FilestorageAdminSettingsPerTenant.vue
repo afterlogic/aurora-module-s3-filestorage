@@ -9,7 +9,7 @@
           <div class="row">
             <div class="col-2 q-my-sm" v-t="'CPANELINTEGRATOR.LABEL_CPANEL_HOST'"></div>
             <div class="col-5">
-              <q-input outlined dense class="bg-white" v-model="region" @keyup.enter="save"/>
+              <q-input outlined dense bg-color="white" v-model="region" @keyup.enter="save"/>
             </div>
           </div>
         </q-card-section>
