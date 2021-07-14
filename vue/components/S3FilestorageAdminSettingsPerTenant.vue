@@ -28,27 +28,22 @@
 </template>
 
 <script>
-import types from 'src/utils/types'
-import UnsavedChangesDialog from 'src/components/UnsavedChangesDialog'
-import webApi from 'src/utils/web-api'
-import notification from 'src/utils/notification'
-import errors from 'src/utils/errors'
-import cache from 'src/cache'
 import _ from 'lodash'
+
+import errors from 'src/utils/errors'
+import notification from 'src/utils/notification'
+import types from 'src/utils/types'
+import webApi from 'src/utils/web-api'
+
+import UnsavedChangesDialog from 'src/components/UnsavedChangesDialog'
 
 export default {
   name: 'S3FilestorageAdminSettingsPerTenant',
+
   components: {
     UnsavedChangesDialog
   },
-  mounted() {
-    this.populate()
-  },
-  computed: {
-    tenantId () {
-      return types.pInt(this.$route?.params?.id)
-    }
-  },
+
   data () {
     return {
       saving: false,
@@ -57,6 +52,23 @@ export default {
       region: ''
     }
   },
+
+  computed: {
+    tenantId () {
+      return this.$store.getters['tenants/getCurrentTenantId']
+    },
+
+    allTenants () {
+      return this.$store.getters['tenants/getTenants']
+    },
+  },
+
+  watch: {
+    allTenants () {
+      this.populate()
+    },
+  },
+
   beforeRouteLeave (to, from, next) {
     if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
       this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
@@ -64,23 +76,31 @@ export default {
       next()
     }
   },
+
+  mounted() {
+    this.loading = false
+    this.saving = false
+    this.populate()
+  },
+
   methods: {
     hasChanges () {
-      const region = _.isFunction(this.tenant?.getData) ? this.tenant?.getData('S3Filestorage::Region') : ''
-      return this.region !== region
+      const tenantCompleteData = types.pObject(this.tenant?.completeData)
+      return this.region !== tenantCompleteData['S3Filestorage::Region']
     },
+
     populate () {
-      this.loading = true
-      cache.getTenant(this.tenantId).then(({ tenant }) => {
+      const tenant = this.$store.getters['tenants/getTenant'](this.tenantId)
+      if (tenant) {
         if (tenant.completeData['S3Filestorage::Region'] !== undefined) {
-          this.loading = false
           this.tenant = tenant
           this.region = tenant.completeData['S3Filestorage::Region']
         } else {
           this.getSettings()
         }
-      })
+      }
     },
+
     save () {
       if (!this.saving) {
         this.saving = true
@@ -93,14 +113,12 @@ export default {
           methodName: 'UpdateS3Settings',
           parameters
         }).then(result => {
-          cache.getTenant(parameters.TenantId, true).then(({ tenant }) => {
-            tenant.setCompleteData({
-              'S3Filestorage::Region': parameters.Region,
-            })
-            this.populate()
-          })
           this.saving = false
           if (result) {
+            const data = {
+              'S3Filestorage::Region': parameters.Region,
+            }
+            this.$store.commit('tenants/setTenantCompleteData', { id: this.tenantId, data })
             notification.showReport(this.$t('COREWEBCLIENT.REPORT_SETTINGS_UPDATE_SUCCESS'))
           } else {
             notification.showError(this.$t('COREWEBCLIENT.ERROR_SAVING_SETTINGS_FAILED'))
@@ -111,6 +129,7 @@ export default {
         })
       }
     },
+
     getSettings () {
       this.loading = true
       const parameters = {
@@ -123,12 +142,10 @@ export default {
       }).then(result => {
         this.loading = false
         if (result) {
-          cache.getTenant(parameters.TenantId, true).then(({ tenant }) => {
-            tenant.setCompleteData({
-              'S3Filestorage::Region': result.Region,
-            })
-            this.populate()
-          })
+          const data = {
+            'S3Filestorage::Region': types.pString(result.Region),
+          }
+          this.$store.commit('tenants/setTenantCompleteData', { id: this.tenantId, data })
         }
       }, response => {
         notification.showError(errors.getTextFromResponse(response))
