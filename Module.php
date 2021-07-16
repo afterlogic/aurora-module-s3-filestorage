@@ -368,6 +368,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				$sNewName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
 				$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $sNewName, true);
 			}
+
+			$mResult = true;
 		}
 	}
 
