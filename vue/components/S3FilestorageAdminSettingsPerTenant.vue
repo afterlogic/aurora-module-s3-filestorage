@@ -23,26 +23,17 @@
     <q-inner-loading style="justify-content: flex-start;" :showing="loading || saving">
       <q-linear-progress query />
     </q-inner-loading>
-    <UnsavedChangesDialog ref="unsavedChangesDialog"/>
   </q-scroll-area>
 </template>
 
 <script>
-import _ from 'lodash'
-
 import errors from 'src/utils/errors'
 import notification from 'src/utils/notification'
 import types from 'src/utils/types'
 import webApi from 'src/utils/web-api'
 
-import UnsavedChangesDialog from 'src/components/UnsavedChangesDialog'
-
 export default {
   name: 'S3FilestorageAdminSettingsPerTenant',
-
-  components: {
-    UnsavedChangesDialog
-  },
 
   data () {
     return {
@@ -70,11 +61,7 @@ export default {
   },
 
   beforeRouteLeave (to, from, next) {
-    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
-      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
-    } else {
-      next()
-    }
+    this.doBeforeRouteLeave(to, from, next)
   },
 
   mounted() {
@@ -84,9 +71,22 @@ export default {
   },
 
   methods: {
+    /**
+     * Method is used in doBeforeRouteLeave mixin
+     */
     hasChanges () {
       const tenantCompleteData = types.pObject(this.tenant?.completeData)
       return this.region !== tenantCompleteData['S3Filestorage::Region']
+    },
+
+    /**
+     * Method is used in doBeforeRouteLeave mixin,
+     * do not use async methods - just simple and plain reverting of values
+     * !! hasChanges method must return true after executing revertChanges method
+     */
+    revertChanges () {
+      const tenantCompleteData = types.pObject(this.tenant?.completeData)
+      this.region = tenantCompleteData['S3Filestorage::Region']
     },
 
     populate () {
