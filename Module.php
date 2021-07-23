@@ -282,7 +282,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		$mResult = false;
 		$oTenant = \Aurora\Modules\Core\Module::getInstance()->GetTenantUnchecked($iIdTenant);
-		if ($oTenant instanceof \Aurora\Modules\Core\Classes\Tenant)
+		if ($oTenant instanceof \Aurora\Modules\Core\Models\Tenant)
 		{
 			$mResult = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $oTenant->Name));
 		}
@@ -528,7 +528,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	public function onAfterDeleteTenant($aArgs, &$mResult)
 	{
-		if ($this->oTenantForDelete instanceof \Aurora\Modules\Core\Classes\Tenant)
+		if ($this->oTenantForDelete instanceof \Aurora\Modules\Core\Models\Tenant)
 		{	try
 			{
 				$oS3Client = $this->getS3Client(
@@ -553,7 +553,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	public function onAfterDeleteUser($aArgs, $mResult)
 	{
-		if ($this->oUserForDelete instanceof \Aurora\Modules\Core\Classes\User)
+		if ($this->oUserForDelete instanceof \Aurora\Modules\Core\Models\User)
 		{
 			if ($this->DeleteUserFolder($this->oUserForDelete->IdTenant, $this->oUserForDelete->PublicId))
 			{
