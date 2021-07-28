@@ -44,7 +44,6 @@
         </q-btn>
       </div>
     </div>
-    <UnsavedChangesDialog ref="unsavedChangesDialog"/>
   </q-scroll-area>
 </template>
 
