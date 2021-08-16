@@ -75,6 +75,10 @@ export default {
      * Method is used in doBeforeRouteLeave mixin
      */
     hasChanges () {
+      if (this.loading) {
+        return false
+      }
+
       const tenantCompleteData = types.pObject(this.tenant?.completeData)
       return this.region !== tenantCompleteData['S3Filestorage::Region']
     },
