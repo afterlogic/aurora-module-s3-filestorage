@@ -30,7 +30,7 @@
               <q-input outlined dense bg-color="white" v-model="host" @keyup.enter="save"/>
             </div>
           </div>
-          <div class="row q-mb-md">
+          <div class="row">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_BUCKET_PREFIX'"></div>
             <div class="col-5">
               <q-input outlined dense bg-color="white" v-model="bucketPrefix" @keyup.enter="save"/>
