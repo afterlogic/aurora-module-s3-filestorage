@@ -2,12 +2,12 @@
   <q-scroll-area class="full-height full-width">
     <div class="q-pa-lg ">
       <div class="row q-mb-md">
-        <div class="col text-h5" v-t="'CPANELINTEGRATOR.HEADING_SETTINGS_TAB'"></div>
+        <div class="col text-h5" v-t="'S3FILESTORAGE.HEADING_SETTINGS_TAB'"></div>
       </div>
       <q-card flat bordered class="card-edit-settings">
         <q-card-section>
           <div class="row">
-            <div class="col-2 q-my-sm" v-t="'CPANELINTEGRATOR.LABEL_CPANEL_HOST'"></div>
+            <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_REGION'"></div>
             <div class="col-5">
               <q-input outlined dense bg-color="white" v-model="region" @keyup.enter="save"/>
             </div>
