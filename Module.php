@@ -7,6 +7,9 @@
 
 namespace Aurora\Modules\S3Filestorage;
 
+use Afterlogic\DAV\Constants;
+use Afterlogic\DAV\FS\Shared\File as SharedFile;
+use Afterlogic\DAV\FS\Shared\Directory as SharedDirectory;
 use Aws\S3\S3Client;
 
 /**
@@ -340,6 +343,33 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		return $mResult;
 	}
 
+	protected function copyOrMove($UserId, $FromType, $FromPath, $FromName, $ToType, $ToPath, $ToName, $IsMove = false)
+	{
+		$sUserPublicId = \Aurora\Api::getUserPublicIdById($UserId);
+		$oServer = \Afterlogic\DAV\Server::getInstance();
+		$oServer->setUser($sUserPublicId);
+
+		$sPath = 'files/' . $FromType . $FromPath . '/' . $FromName;
+
+		$oItem = $oServer->tree->getNodeForPath($sPath);
+
+		if (($oItem instanceof SharedFile || $oItem instanceof SharedDirectory) && !$oItem->isInherited())
+		{
+			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
+			$oPdo->updateSharedFileSharePath($oItem->getOwner(), $oItem->getName(), $FromPath, $ToPath);
+
+			$oItem = $oItem->getNode();
+		}
+		else
+		{
+			$oItem->copyObjectTo($ToType, $ToPath, $ToName, $IsMove);
+			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
+			$oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
+
+		}
+
+	}
+
 	/**
 	 * Moves file if $aData['Type'] is DropBox account type.
 	 *
@@ -352,23 +382,22 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 		if ($this->checkStorageType($aArgs['FromType']))
 		{
+			$mResult = false;
+
 			$UserId = $aArgs['UserId'];
 			$this->CheckAccess($UserId);
 
-			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($UserId);
-			$oServer = \Afterlogic\DAV\Server::getInstance();
-			$oServer->setUser($sUserPiblicId);
-
-			$mResult = false;
-
-			foreach ($aArgs['Files'] as $aFile)
-			{
-				$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
-				$oNode = $oServer->tree->getNodeForPath($sPath);
-				$sNewName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
-				$oNode->copyObjectTo($aArgs['ToType'],$aArgs['ToPath'], $sNewName, true);
+			if ($aArgs['ToType'] === $aArgs['FromType'])
+			{	
+				foreach ($aArgs['Files'] as $aFile)
+				{
+					$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
+					$this->copyOrMove($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, true);
+				}
+				$mResult = true;
 			}
 		}
+
 	}
 
 	/**
@@ -388,18 +417,12 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$UserId = $aArgs['UserId'];
 			$this->CheckAccess($UserId);
 
-			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($UserId);
-			$oServer = \Afterlogic\DAV\Server::getInstance();
-			$oServer->setUser($sUserPiblicId);
-
 			if ($aArgs['ToType'] === $aArgs['FromType'])
-			{
+			{	
 				foreach ($aArgs['Files'] as $aFile)
 				{
-					$sPath = 'files/' . $aArgs['FromType'] . $aFile['FromPath'] . '/' . $aFile['Name'];
-					$oNode = $oServer->tree->getNodeForPath($sPath);
-					$sNewName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
-					$oNode->copyObjectTo($aArgs['ToType'], $aArgs['ToPath'], $sNewName);
+					$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
+					$this->copyOrMove($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, false);
 				}
 				$mResult = true;
 			}
@@ -493,7 +516,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 				$bNoRedirect = (isset($aArgs['NoRedirect']) && $aArgs['NoRedirect']) ? true : false;
 
-				if ($oNode instanceof \Afterlogic\DAV\FS\S3\File)
+				if ($oNode instanceof \Afterlogic\DAV\FS\File)
 				{
 					if ($this->isNeedToReturnBody() || \strtolower($sExt) === 'url' || $bNoRedirect)
 					{
