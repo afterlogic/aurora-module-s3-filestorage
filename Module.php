@@ -179,24 +179,16 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	}
 
 
-	protected function getS3Client($endpoint, $bucket_endpoint = false)
+	protected function getS3Client()
 	{
-		$signature_version = 'v4';
-		if (!$bucket_endpoint)
-		{
-			$signature_version = 'v4-unsigned-body';
-		}
-
-		return S3Client::factory([
+		return new  S3Client([
 			'region' => $this->sRegion,
 			'version' => 'latest',
-			'endpoint' => $endpoint,
+			'endpoint' => $this->sHost,
 			'credentials' => [
 				'key'    => $this->sAccessKey,
 				'secret' => $this->sSecretKey,
-			],
-			'bucket_endpoint' => $bucket_endpoint,
-			'signature_version' => $signature_version
+			]
 		]);
 	}
 
@@ -212,17 +204,15 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		{
 			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
 
-			$endpoint = "https://".$this->sRegion.".".$this->sHost;
+			$this->oClient = $this->getS3Client();
 
-			$oS3Client = $this->getS3Client($endpoint);
-
-			if(!$oS3Client->doesBucketExist($this->sBucket))
+			if(!$this->oClient->doesBucketExist($this->sBucket))
 			{
-				$oS3Client->createBucket([
+				$this->oClient->createBucket([
 					'Bucket' => $this->sBucket
 				]);
 
-				$res = $oS3Client->putBucketCors([
+				$res = $this->oClient->putBucketCors([
 					'Bucket' => $this->sBucket,
 					'CORSConfiguration' => [
 						'CORSRules' => [
@@ -238,7 +228,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 									'HEAD'
 								],
 								'AllowedOrigins' => [
-									(\Aurora\System\Api::isHttps() ? "https" : "http") . "://$_SERVER[HTTP_HOST]"
+									(\Aurora\System\Api::isHttps() ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']
 								],
 								'MaxAgeSeconds' => 0,
 							],
@@ -247,9 +237,6 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 					'ContentMD5' => '',
 				]);
 			}
-
-			$endpoint = "https://".$this->sBucket.".".$this->sRegion.".".$this->sHost;
-			$this->oClient = $this->getS3Client($endpoint, true);
 		}
 
 		return $this->oClient;
@@ -257,8 +244,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	protected function getUserPublicId()
 	{
-		if (!isset($this->sUserPublicId))
-		{
+		if (!isset($this->sUserPublicId)) {
 			$oUser = \Aurora\System\Api::getAuthenticatedUser();
 			$this->sUserPublicId = $oUser->PublicId;
 		}
@@ -273,8 +259,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 */
 	protected function getTenantName()
 	{
-		if (!isset($this->sTenantName))
-		{
+		if (!isset($this->sTenantName)) {
 			$this->sTenantName = \Aurora\System\Api::getTenantName();
 		}
 
@@ -285,8 +270,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	{
 		$mResult = false;
 		$oTenant = \Aurora\Modules\Core\Module::getInstance()->GetTenantUnchecked($iIdTenant);
-		if ($oTenant instanceof \Aurora\Modules\Core\Models\Tenant)
-		{
+		if ($oTenant instanceof \Aurora\Modules\Core\Models\Tenant) {
 			$mResult = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $oTenant->Name));
 		}
 
@@ -313,8 +297,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 		$aMetadata = [];
 		$sMetadataDirective = 'COPY';
-		if ($oObject)
-		{
+		if ($oObject) {
 			$aMetadata = $oObject->get('Metadata');
 			$aMetadata['filename'] = $sNewName;
 			$sMetadataDirective = 'REPLACE';
@@ -328,10 +311,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			'MetadataDirective' => $sMetadataDirective
 		]);
 
-		if ($res)
-		{
-			if ($bMove)
-			{
+		if ($res) {
+			if ($bMove) {
 				$res = $oClient->deleteObject([
 					'Bucket' => $this->sBucket,
 					'Key' => $sUserPublicId . $sFromPath.'/'.$sOldName . $sSuffix
@@ -365,9 +346,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$oItem->copyObjectTo($ToType, $ToPath, $ToName, $IsMove);
 			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
 			$oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
-
 		}
-
 	}
 
 	/**
@@ -439,7 +418,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		if ($this->checkStorageType($aArgs['Type']))
 		{
 			$aQuota = [0, 0];
-			$oNode = \Afterlogic\DAV\Server::getInstance()->tree->getNodeForPath('files/' . static::$sStorageType);
+			$oNode = \Afterlogic\DAV\Server::getNodeForPath('files/' . static::$sStorageType);
 
 			if (is_a($oNode, 'Afterlogic\\DAV\\FS\\S3\\' . ucfirst(static::$sStorageType) . '\\Root'))
 			{
