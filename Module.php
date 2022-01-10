@@ -10,6 +10,7 @@ namespace Aurora\Modules\S3Filestorage;
 use Afterlogic\DAV\Constants;
 use Afterlogic\DAV\FS\Shared\File as SharedFile;
 use Afterlogic\DAV\FS\Shared\Directory as SharedDirectory;
+use Aurora\Api;
 use Aws\S3\S3Client;
 
 /**
@@ -584,5 +585,22 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		}
 
 		return $bResult;
+	}
+
+	public function TestConnection()
+	{
+		$mResult = true;
+		try {
+			// Instantiate the S3 client with your AWS credentials
+			$s3Client = $this->getS3Client();
+			
+			$buckets = $s3Client->listBuckets();
+		}
+		catch(\Exception $e) {
+		
+			$mResult = false;
+			Api::LogException($e);
+		}
+		return $mResult;
 	}
 }
