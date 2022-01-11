@@ -6,10 +6,32 @@
       </div>
       <q-card flat bordered class="card-edit-settings">
         <q-card-section>
-          <div class="row">
+          <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_REGION'"></div>
             <div class="col-5">
               <q-input outlined dense bg-color="white" v-model="region" @keyup.enter="save"/>
+            </div>
+          </div>
+          <div class="row q-mb-md">
+            <div class="col-2 q-my-sm" />
+            <div class="col-8">
+              <q-item-label caption>
+                {{ $t('S3FILESTORAGE.INFO_REGION') }}
+              </q-item-label>
+            </div>
+          </div>
+                    <div class="row q-mb-md">
+            <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_HOST'"></div>
+            <div class="col-5">
+              <q-input outlined dense bg-color="white" v-model="host" @keyup.enter="save"/>
+            </div>
+          </div>
+          <div class="row q-mb-md">
+            <div class="col-2 q-my-sm" />
+            <div class="col-8">
+              <q-item-label caption>
+                {{ $t('S3FILESTORAGE.INFO_HOST') }}
+              </q-item-label>
             </div>
           </div>
         </q-card-section>
@@ -40,7 +62,8 @@ export default {
       saving: false,
       loading: false,
       tenant: null,
-      region: ''
+      region: '',
+      host: ''
     }
   },
 
@@ -80,7 +103,7 @@ export default {
       }
 
       const tenantCompleteData = types.pObject(this.tenant?.completeData)
-      return this.region !== tenantCompleteData['S3Filestorage::Region']
+      return this.region !== tenantCompleteData['S3Filestorage::Region'] || this.host !== tenantCompleteData['S3Filestorage::Host'];
     },
 
     /**
@@ -91,6 +114,7 @@ export default {
     revertChanges () {
       const tenantCompleteData = types.pObject(this.tenant?.completeData)
       this.region = tenantCompleteData['S3Filestorage::Region']
+      this.host = tenantCompleteData['S3Filestorage::Host']
     },
 
     populate () {
@@ -99,6 +123,7 @@ export default {
         if (tenant.completeData['S3Filestorage::Region'] !== undefined) {
           this.tenant = tenant
           this.region = tenant.completeData['S3Filestorage::Region']
+          this.host = tenant.completeData['S3Filestorage::Host']
         } else {
           this.getSettings()
         }
@@ -111,6 +136,7 @@ export default {
         const parameters = {
           TenantId: this.tenantId,
           Region: this.region,
+          Host: this.host,
         }
         webApi.sendRequest({
           moduleName: 'S3Filestorage',
@@ -121,6 +147,7 @@ export default {
           if (result) {
             const data = {
               'S3Filestorage::Region': parameters.Region,
+              'S3Filestorage::Host': parameters.Host,
             }
             this.$store.commit('tenants/setTenantCompleteData', { id: this.tenantId, data })
             notification.showReport(this.$t('COREWEBCLIENT.REPORT_SETTINGS_UPDATE_SUCCESS'))
@@ -148,6 +175,7 @@ export default {
         if (result) {
           const data = {
             'S3Filestorage::Region': types.pString(result.Region),
+            'S3Filestorage::Host': types.pString(result.Host),
           }
           this.$store.commit('tenants/setTenantCompleteData', { id: this.tenantId, data })
         }

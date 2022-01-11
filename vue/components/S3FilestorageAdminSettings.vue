@@ -25,9 +25,25 @@
             </div>
           </div>
           <div class="row q-mb-md">
+            <div class="col-2 q-my-sm" />
+            <div class="col-8">
+              <q-item-label caption>
+                {{ $t('S3FILESTORAGE.INFO_REGION') }}
+              </q-item-label>
+            </div>
+          </div>
+          <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_HOST'"></div>
             <div class="col-5">
               <q-input outlined dense bg-color="white" v-model="host" @keyup.enter="save"/>
+            </div>
+          </div>
+          <div class="row q-mb-md">
+            <div class="col-2 q-my-sm" />
+            <div class="col-8">
+              <q-item-label caption>
+                {{ $t('S3FILESTORAGE.INFO_HOST') }}
+              </q-item-label>
             </div>
           </div>
           <div class="row">

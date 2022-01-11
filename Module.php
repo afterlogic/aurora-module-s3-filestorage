@@ -66,7 +66,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
 		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->getTenantName()));
-		$this->sHost = $this->getConfig('Host');
+		$this->sHost = !$this->getConfig('Host');
 		$this->sRegion = $this->getConfig('Region');
 		$this->sAccessKey = $this->getConfig('AccessKey');
 		$this->sSecretKey = $this->getConfig('SecretKey');
@@ -74,8 +74,8 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	public function onAddToContentSecurityPolicyDefault($aArgs, &$aAddDefault)
 	{
-		$aAddDefault[] = "https://".$this->sRegion.".".$this->sHost;
-		$aAddDefault[] = "https://".$this->sBucket.".".$this->sRegion.".".$this->sHost;
+		$aAddDefault[] = "https://" . $this->sHost;
+		$aAddDefault[] = "https://" . $this->sBucket . "." . $this->sHost;
 	}
 	
 	/**
@@ -99,6 +99,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				{
 					$this->aSettings = [
 						'Region' => $oSettings->GetTenantValue($oTenant->Name, 'Region', ''),
+						'Host' => $oSettings->GetTenantValue($oTenant->Name, 'Host', ''),
 					];
 				}
 			}
@@ -138,6 +139,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 		if ($oTenant)
 	 		{
 	 			$oSettings->SetTenantValue($oTenant->Name, 'Region', $Region);
+				$oSettings->SetTenantValue($oTenant->Name, 'Host', $Host);
 	 			return $oSettings->SaveTenantSettings($oTenant->Name);
 	 		}
 	 	}
@@ -182,15 +184,18 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 	protected function getS3Client()
 	{
-		return new  S3Client([
+		$options = [
 			'region' => $this->sRegion,
 			'version' => 'latest',
-			'endpoint' => $this->sHost,
 			'credentials' => [
 				'key'    => $this->sAccessKey,
 				'secret' => $this->sSecretKey,
 			]
-		]);
+		];
+		if (!empty($this->sHost)) {
+			$options['endpoint'] = 'https://' . $this->sHost;
+		}
+		return new  S3Client($options);
 	}
 
 	/**
@@ -256,7 +261,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	/**
 	 * getTenantName
 	 *
-	 * @return void
+	 * @return string
 	 */
 	protected function getTenantName()
 	{
@@ -534,9 +539,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		if ($this->oTenantForDelete instanceof \Aurora\Modules\Core\Models\Tenant)
 		{	try
 			{
-				$oS3Client = $this->getS3Client(
-					"https://".$this->sRegion.".".$this->sHost
-				);
+				$oS3Client = $this->getS3Client();
 				$oS3Client->deleteBucket([
 					'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', \Afterlogic\DAV\Server::getTenantName($this->oTenantForDelete->Name)))
 				]);
@@ -570,9 +573,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$bResult = false;
 		try
 		{
-			$oS3Client = $this->getS3Client(
-				"https://".$this->sRegion.".".$this->sHost
-			);
+			$oS3Client = $this->getS3Client();
 			$res = $oS3Client->deleteMatchingObjects(
 				$this->getBucketForTenant($IdTenant),
 				$PublicId . '/'
