@@ -66,7 +66,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 
 		$this->sBucketPrefix = $this->getConfig('BucketPrefix');
 		$this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->getTenantName()));
-		$this->sHost = !$this->getConfig('Host');
+		$this->sHost = $this->getConfig('Host');
 		$this->sRegion = $this->getConfig('Region');
 		$this->sAccessKey = $this->getConfig('AccessKey');
 		$this->sSecretKey = $this->getConfig('SecretKey');
@@ -588,12 +588,36 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		return $bResult;
 	}
 
-	public function TestConnection()
+	public function TestConnection($Region, $Host, $AccessKey = null, $SecretKey = null, $TenantId = null)
 	{
 		$mResult = true;
+
+		if (isset($TenantId)) {
+			
+			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+
+			$oTenant = \Aurora\System\Api::getTenantById($TenantId);
+
+			if ($oTenant) {
+				$AccessKey = $this->getConfig('AccessKey');
+				$SecretKey = $this->getConfig('SecretKey');
+			}
+		} else {
+			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+		}
 		try {
-			// Instantiate the S3 client with your AWS credentials
-			$s3Client = $this->getS3Client();
+			$options = [
+				'region' => $Region,
+				'version' => 'latest',
+				'credentials' => [
+					'key'    => $AccessKey,
+					'secret' => $SecretKey,
+				]
+			];
+			if (!empty($Host)) {
+				$options['endpoint'] = 'https://' . $Host;
+			}
+			$s3Client = new S3Client($options);
 			
 			$buckets = $s3Client->listBuckets();
 		}

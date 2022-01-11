@@ -34,6 +34,14 @@
               </q-item-label>
             </div>
           </div>
+          <div class="row q-mb-xl">
+            <div class="col-2 q-my-sm"></div>
+            <div class="col-5">
+              <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary"
+                      :label="$t('S3FILESTORAGE.BUTTON_TEST_CONNECTION')" @click="testConnection">
+              </q-btn>
+            </div>
+          </div>
         </q-card-section>
       </q-card>
       <div class="q-pt-md text-right">
@@ -63,7 +71,8 @@ export default {
       loading: false,
       tenant: null,
       region: '',
-      host: ''
+      host: '',
+      testingConnection: false
     }
   },
 
@@ -182,6 +191,32 @@ export default {
       }, response => {
         notification.showError(errors.getTextFromResponse(response))
       })
+    },
+
+    testConnection() {
+      if (!this.testingConnection) {
+        this.testingConnection = true
+        const parameters = {
+          Region: this.region,
+          Host: this.host,
+          TenantId: this.tenantId
+        }
+        webApi.sendRequest({
+          moduleName: 'S3Filestorage',
+          methodName: 'TestConnection',
+          parameters,
+        }).then(result => {
+          this.testingConnection = false
+          if (result === true) {
+            notification.showReport(this.$t('S3FILESTORAGE.REPORT_CONNECT_SUCCESSFUL'))
+          } else {
+            notification.showError(this.$t('S3FILESTORAGE.ERROR_CONNECT_FAILED'))
+          }
+        }, response => {
+          this.testingConnection = false
+          notification.showError(errors.getTextFromResponse(response, this.$t('S3FILESTORAGE.ERROR_CONNECT_FAILED')))
+        })
+      }
     }
   }
 }

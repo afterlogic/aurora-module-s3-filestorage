@@ -46,10 +46,18 @@
               </q-item-label>
             </div>
           </div>
-          <div class="row">
+          <div class="row q-mb-md">
             <div class="col-2 q-my-sm" v-t="'S3FILESTORAGE.LABEL_BUCKET_PREFIX'"></div>
             <div class="col-5">
               <q-input outlined dense bg-color="white" v-model="bucketPrefix" @keyup.enter="save"/>
+            </div>
+          </div>
+          <div class="row q-mb-xl">
+            <div class="col-2 q-my-sm"></div>
+            <div class="col-5">
+              <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary"
+                      :label="$t('ADMINPANELWEBCLIENT.BUTTON_DB_TEST_CONNECTION')" @click="testConnection">
+              </q-btn>
             </div>
           </div>
         </q-card-section>
@@ -91,7 +99,8 @@ export default {
       secretKey: '',
       region: '',
       host: '',
-      bucketPrefix: ''
+      bucketPrefix: '',
+      testingConnection: false
     }
   },
   methods: {
@@ -151,6 +160,7 @@ export default {
         })
       }
     },
+
     populate () {
       const data = settings.getS3FilestorageSettings()
       this.accessKey = data.accessKey
@@ -158,6 +168,33 @@ export default {
       this.region = data.region
       this.host = data.host
       this.bucketPrefix = data.bucketPrefix
+    },
+
+    testConnection() {
+      if (!this.testingConnection) {
+        this.testingConnection = true
+        const parameters = {
+          AccessKey: this.accessKey,
+          SecretKey: this.secretKey,
+          Region: this.region,
+          Host: this.host
+        }
+        webApi.sendRequest({
+          moduleName: 'S3Filestorage',
+          methodName: 'TestConnection',
+          parameters,
+        }).then(result => {
+          this.testingConnection = false
+          if (result === true) {
+            notification.showReport(this.$t('S3FILESTORAGE.REPORT_CONNECT_SUCCESSFUL'))
+          } else {
+            notification.showError(this.$t('S3FILESTORAGE.ERROR_CONNECT_FAILED'))
+          }
+        }, response => {
+          this.testingConnection = false
+          notification.showError(errors.getTextFromResponse(response, this.$t('S3FILESTORAGE.ERROR_CONNECT_FAILED')))
+        })
+      }
     }
   }
 }
