@@ -56,7 +56,7 @@
             <div class="col-2 q-my-sm"></div>
             <div class="col-5">
               <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary"
-                      :label="$t('ADMINPANELWEBCLIENT.BUTTON_DB_TEST_CONNECTION')" @click="testConnection">
+                      :label="$t('S3FILESTORAGE.BUTTON_TEST_CONNECTION')" @click="testConnection">
               </q-btn>
             </div>
           </div>
