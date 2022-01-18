@@ -370,7 +370,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$mResult = false;
 
 			$UserId = $aArgs['UserId'];
-			$this->CheckAccess($UserId);
+			Api::CheckAccess($UserId);
 
 			if ($aArgs['ToType'] === $aArgs['FromType'])
 			{	
@@ -400,7 +400,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$mResult = false;
 
 			$UserId = $aArgs['UserId'];
-			$this->CheckAccess($UserId);
+			Api::CheckAccess($UserId);
 
 			if ($aArgs['ToType'] === $aArgs['FromType'])
 			{	
@@ -486,7 +486,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		if ($this->checkStorageType($aArgs['Type']))
 		{
 			$UserId = $aArgs['UserId'];
-			$this->CheckAccess($UserId);
+			Api::CheckAccess($UserId);
 
 			$sUserPiblicId = \Aurora\Api::getUserPublicIdById($UserId);
 
