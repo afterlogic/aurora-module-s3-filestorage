@@ -26,5 +26,9 @@
     "PresignedLinkLifetimeMinutes": [
         60,
         "int"
+    ],
+    "RedirectToOriginalFileURLs": [
+        true,
+        "bool"
     ]
 }
