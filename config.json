@@ -1,66 +1,66 @@
 {
-  "Disabled": [
-    false,
-    "bool"
-  ],
-  "Disabled_Description": [
-    "",
-    "string"
-  ],
-  "AccessKey": [
-    "",
-    "string"
-  ],
-  "AccessKey_Description": [
-    "",
-    "string"
-  ],
-  "SecretKey": [
-    "",
-    "string"
-  ],
-  "SecretKey_Description": [
-    "",
-    "string"
-  ],
-  "Region": [
-    "",
-    "string"
-  ],
-  "Region_Description": [
-    "",
-    "string"
-  ],
-  "Host": [
-    "",
-    "string"
-  ],
-  "Host_Description": [
-    "",
-    "string"
-  ],
-  "BucketPrefix": [
-    "",
-    "string"
-  ],
-  "BucketPrefix_Description": [
-    "",
-    "string"
-  ],
-  "PresignedLinkLifetimeMinutes": [
-    60,
-    "int"
-  ],
-  "PresignedLinkLifetimeMinutes_Description": [
-    "",
-    "string"
-  ],
-  "RedirectToOriginalFileURLs": [
-    true,
-    "bool"
-  ],
-  "RedirectToOriginalFileURLs_Description": [
-    "",
-    "string"
-  ]
+	"Disabled": [
+		false,
+		"bool"
+	],
+	"Disabled_Description": [
+		"",
+		"string"
+	],
+	"AccessKey": [
+		"",
+		"string"
+	],
+	"AccessKey_Description": [
+		"",
+		"string"
+	],
+	"SecretKey": [
+		"",
+		"string"
+	],
+	"SecretKey_Description": [
+		"",
+		"string"
+	],
+	"Region": [
+		"",
+		"string"
+	],
+	"Region_Description": [
+		"",
+		"string"
+	],
+	"Host": [
+		"",
+		"string"
+	],
+	"Host_Description": [
+		"",
+		"string"
+	],
+	"BucketPrefix": [
+		"",
+		"string"
+	],
+	"BucketPrefix_Description": [
+		"",
+		"string"
+	],
+	"PresignedLinkLifetimeMinutes": [
+		60,
+		"int"
+	],
+	"PresignedLinkLifetimeMinutes_Description": [
+		"",
+		"string"
+	],
+	"RedirectToOriginalFileURLs": [
+		true,
+		"bool"
+	],
+	"RedirectToOriginalFileURLs_Description": [
+		"",
+		"string"
+	]
 }
