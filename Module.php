@@ -349,6 +349,12 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		}
 		else
 		{
+			$ToName = $this->getManager()->getNonExistentFileName(
+				$sUserPublicId,
+				$ToType,
+				$ToPath,
+				$ToName
+			);
 			$oItem->copyObjectTo($ToType, $ToPath, $ToName, $IsMove);
 			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
 			$oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
