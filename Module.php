@@ -343,7 +343,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		if (($oItem instanceof SharedFile || $oItem instanceof SharedDirectory) && !$oItem->isInherited())
 		{
 			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
-			$oPdo->updateSharedFileSharePath($oItem->getOwner(), $oItem->getName(), $FromPath, $ToPath);
+			$oPdo->updateSharedFileSharePath(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $oItem->getName(), $FromPath, $ToPath, $oItem->getGroupId());
 
 			$oItem = $oItem->getNode();
 		}
