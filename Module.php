@@ -12,6 +12,8 @@ use Afterlogic\DAV\FS\Shared\File as SharedFile;
 use Afterlogic\DAV\FS\Shared\Directory as SharedDirectory;
 use Aurora\Api;
 use Aws\S3\S3Client;
+use Aurora\Modules\SharedFiles\Enums\ErrorCodes;
+use Aurora\System\Exceptions\ApiException;
 
 /**
  * Adds ability to work with S3 file storage inside Aurora Files module.
@@ -330,6 +332,21 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		return $mResult;
 	}
 
+	protected function getDirectory($sUserPublicId, $sType, $sPath = '')
+	{
+		$oDirectory = null;
+
+		if ($sUserPublicId)
+		{
+			$oServer = \Afterlogic\DAV\Server::getInstance();
+			$oServer->setUser($sUserPublicId);
+
+			$oDirectory = $oServer->tree->getNodeForPath('files/' . $sType . '/' . \trim($sPath, '/'));
+		}
+
+		return $oDirectory;
+	}
+
 	protected function copyOrMove($UserId, $FromType, $FromPath, $FromName, $ToType, $ToPath, $ToName, $IsMove = false)
 	{
 		$sUserPublicId = \Aurora\Api::getUserPublicIdById($UserId);
@@ -337,8 +354,14 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		$oServer->setUser($sUserPublicId);
 
 		$sPath = 'files/' . $FromType . $FromPath . '/' . $FromName;
-
 		$oItem = $oServer->tree->getNodeForPath($sPath);
+
+		$oToDirectory = $this->getDirectory($sUserPublicId, $ToType, $ToPath);
+		$bIsSharedFile = ($oItem instanceof SharedFile || $oItem instanceof SharedDirectory);
+		$bIsSharedToDirectory = ($oToDirectory instanceof SharedDirectory);
+		if ($IsMove && $bIsSharedFile && $bIsSharedToDirectory) {
+			throw new ApiException(ErrorCodes::NotPossibleToMoveSharedFileToSharedFolder);
+		}
 
 		if (($oItem instanceof SharedFile || $oItem instanceof SharedDirectory) && !$oItem->isInherited())
 		{
