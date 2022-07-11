@@ -378,15 +378,15 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$UserId = $aArgs['UserId'];
 			Api::CheckAccess($UserId);
 
-			if ($aArgs['ToType'] === $aArgs['FromType'])
-			{	
+			// if ($aArgs['ToType'] === $aArgs['FromType'])
+			// {	
 				foreach ($aArgs['Files'] as $aFile)
 				{
 					$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
 					$this->copyOrMove($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, true);
 				}
 				$mResult = true;
-			}
+			// }
 		}
 
 	}
@@ -408,15 +408,15 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 			$UserId = $aArgs['UserId'];
 			Api::CheckAccess($UserId);
 
-			if ($aArgs['ToType'] === $aArgs['FromType'])
-			{	
+			// if ($aArgs['ToType'] === $aArgs['FromType'])
+			// {	
 				foreach ($aArgs['Files'] as $aFile)
 				{
 					$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
 					$this->copyOrMove($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, false);
 				}
 				$mResult = true;
-			}
+			// }
 		}
 	}
 
