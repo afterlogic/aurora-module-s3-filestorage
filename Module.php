@@ -378,9 +378,12 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				$ToPath,
 				$ToName
 			);
-			$oItem->copyObjectTo($ToType, $ToPath, $ToName, $IsMove);
+			$oItem->copyObjectTo($ToType, $ToPath, $ToName);
 			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
 			$oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
+			if ($IsMove) {
+				$oItem->delete();
+			}
 		}
 	}
 
