@@ -347,7 +347,7 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		return $oDirectory;
 	}
 
-	protected function copyOrMove($UserId, $FromType, $FromPath, $FromName, $ToType, $ToPath, $ToName, $IsMove = false)
+	protected function copy($UserId, $FromType, $FromPath, $FromName, $ToType, $ToPath, $ToName, $IsMove = false)
 	{
 		$sUserPublicId = \Aurora\Api::getUserPublicIdById($UserId);
 		$oServer = \Afterlogic\DAV\Server::getInstance();
@@ -378,7 +378,11 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 				$ToPath,
 				$ToName
 			);
-			$oItem->copyObjectTo($ToType, $ToPath, $ToName);
+			if (!$bIsSharedToDirectory) {
+				$oItem->copyObjectTo($ToType, $ToPath, $ToName);
+			} else {
+				$oToDirectory->createFile($ToName, $oItem->get(false));
+			}
 			$oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
 			$oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
 			if ($IsMove) {
@@ -387,64 +391,64 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 		}
 	}
 
-	/**
-	 * Moves file if $aData['Type'] is DropBox account type.
-	 *
-	 * @ignore
-	 * @param array $aData
-	 */
-	public function onAfterMove(&$aArgs, &$mResult)
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+	// /**
+	//  * Moves file if $aData['Type'] is DropBox account type.
+	//  *
+	//  * @ignore
+	//  * @param array $aData
+	//  */
+	// public function onAfterMove(&$aArgs, &$mResult)
+	// {
+	// 	\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-		if ($this->checkStorageType($aArgs['FromType']))
-		{
-			$mResult = false;
+	// 	if ($this->checkStorageType($aArgs['FromType']))
+	// 	{
+	// 		$mResult = false;
 
-			$UserId = $aArgs['UserId'];
-			Api::CheckAccess($UserId);
+	// 		$UserId = $aArgs['UserId'];
+	// 		Api::CheckAccess($UserId);
 
-			// if ($aArgs['ToType'] === $aArgs['FromType'])
-			// {	
-				foreach ($aArgs['Files'] as $aFile)
-				{
-					$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
-					$this->copyOrMove($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, true);
-				}
-				$mResult = true;
-			// }
-		}
+	// 		// if ($aArgs['ToType'] === $aArgs['FromType'])
+	// 		// {	
+	// 			foreach ($aArgs['Files'] as $aFile)
+	// 			{
+	// 				$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
+	// 				$this->copy($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, true);
+	// 			}
+	// 			$mResult = true;
+	// 		// }
+	// 	}
 
-	}
+	// }
 
-	/**
-	 * Copies file if $aData['Type'] is DropBox account type.
-	 *
-	 * @ignore
-	 * @param array $aData
-	 */
-	public function onAfterCopy(&$aArgs, &$mResult)
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+	// /**
+	//  * Copies file if $aData['Type'] is DropBox account type.
+	//  *
+	//  * @ignore
+	//  * @param array $aData
+	//  */
+	// public function onAfterCopy(&$aArgs, &$mResult)
+	// {
+	// 	\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-		if ($this->checkStorageType($aArgs['FromType']))
-		{
-			$mResult = false;
+	// 	if ($this->checkStorageType($aArgs['FromType']))
+	// 	{
+	// 		$mResult = false;
 
-			$UserId = $aArgs['UserId'];
-			Api::CheckAccess($UserId);
+	// 		$UserId = $aArgs['UserId'];
+	// 		Api::CheckAccess($UserId);
 
-			// if ($aArgs['ToType'] === $aArgs['FromType'])
-			// {	
-				foreach ($aArgs['Files'] as $aFile)
-				{
-					$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
-					$this->copyOrMove($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, false);
-				}
-				$mResult = true;
-			// }
-		}
-	}
+	// 		// if ($aArgs['ToType'] === $aArgs['FromType'])
+	// 		// {	
+	// 			foreach ($aArgs['Files'] as $aFile)
+	// 			{
+	// 				$ToName = isset($aFile['NewName']) ? $aFile['NewName'] : $aFile['Name'];
+	// 				$this->copy($UserId, $aArgs['FromType'], $aFile['FromPath'], $aFile['Name'], $aArgs['ToType'], $aArgs['ToPath'], $ToName, false);
+	// 			}
+	// 			$mResult = true;
+	// 		// }
+	// 	}
+	// }
 
 	/**
 	 * @ignore
