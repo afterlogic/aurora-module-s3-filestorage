@@ -14,6 +14,7 @@ use Aurora\Api;
 use Aws\S3\S3Client;
 use Aurora\Modules\SharedFiles\Enums\ErrorCodes;
 use Aurora\System\Exceptions\ApiException;
+use Aurora\Modules\PersonalFiles\Module as PersonalFiles;
 
 /**
  * Adds ability to work with S3 file storage inside Aurora Files module.
@@ -24,7 +25,7 @@ use Aurora\System\Exceptions\ApiException;
  *
  * @package Modules
  */
-class Module extends \Aurora\Modules\PersonalFiles\Module
+class Module extends PersonalFiles
 {
 	protected $aRequireModules = ['PersonalFiles'];
 
@@ -51,6 +52,11 @@ class Module extends \Aurora\Modules\PersonalFiles\Module
 	 */
 	public function init()
 	{
+		$personalFiles = PersonalFiles::getInstance();
+		if ($personalFiles) {
+			$personalFiles->setConfig('Disabled', true);
+		}
+
 		parent::init();
 
 		$this->subscribeEvent('Core::DeleteTenant::before', array($this, 'onBeforeDeleteTenant'));
