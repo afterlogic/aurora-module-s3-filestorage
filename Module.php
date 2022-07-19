@@ -53,7 +53,7 @@ class Module extends PersonalFiles
 	public function init()
 	{
 		$personalFiles = PersonalFiles::getInstance();
-		if ($personalFiles) {
+		if ($personalFiles && !$this->getConfig('Disabled', false)) {
 			$personalFiles->setConfig('Disabled', true);
 		}
 
