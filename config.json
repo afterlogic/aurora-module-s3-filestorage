@@ -52,7 +52,7 @@
 		"int"
 	],
 	"PresignedLinkLifetimeMinutes_Description": [
-		"",
+		"Lifetime of links with authentication token built into those, for use by external services such as OnlyOffice",
 		"string"
 	],
 	"RedirectToOriginalFileURLs": [
