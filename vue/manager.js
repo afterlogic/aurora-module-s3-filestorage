@@ -1,4 +1,5 @@
 import settings from './settings'
+import store from 'src/store'
 
 import S3FilestorageAdminSettingsPerTenant from './components/S3FilestorageAdminSettingsPerTenant'
 
@@ -24,17 +25,22 @@ export default {
   },
 
   getAdminTenantTabs () {
-    return [
-      {
-        tabName: 's3-filestorage',
-        tabTitle: 'S3FILESTORAGE.LABEL_SETTINGS_TAB',
-        tabRouteChildren: [
-          { path: 'id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
-          { path: 'search/:search/id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
-          { path: 'page/:page/id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
-          { path: 'search/:search/page/:page/id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
-        ],
-      }
-    ]
+    const isUserSuperAdmin = store.getters['user/isUserSuperAdmin']
+    if (isUserSuperAdmin) {
+      return [
+        {
+          tabName: 's3-filestorage',
+          tabTitle: 'S3FILESTORAGE.LABEL_SETTINGS_TAB',
+          tabRouteChildren: [
+            { path: 'id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
+            { path: 'search/:search/id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
+            { path: 'page/:page/id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
+            { path: 'search/:search/page/:page/id/:id/chat', component: S3FilestorageAdminSettingsPerTenant },
+          ],
+        }
+      ]
+    } else {
+      return []
+    }
   },
 }
