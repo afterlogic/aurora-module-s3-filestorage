@@ -344,10 +344,7 @@ class Module extends PersonalFiles
 
 		if ($sUserPublicId)
 		{
-			$oServer = \Afterlogic\DAV\Server::getInstance();
-			$oServer->setUser($sUserPublicId);
-
-			$oDirectory = $oServer->tree->getNodeForPath('files/' . $sType . '/' . \trim($sPath, '/'));
+			$oDirectory = \Afterlogic\DAV\Server::getNodeForPath('files/' . $sType . '/' . \trim($sPath, '/'), $sUserPublicId);
 		}
 
 		return $oDirectory;
@@ -356,11 +353,9 @@ class Module extends PersonalFiles
 	protected function copy($UserId, $FromType, $FromPath, $FromName, $ToType, $ToPath, $ToName, $IsMove = false)
 	{
 		$sUserPublicId = \Aurora\Api::getUserPublicIdById($UserId);
-		$oServer = \Afterlogic\DAV\Server::getInstance();
-		$oServer->setUser($sUserPublicId);
 
 		$sPath = 'files/' . $FromType . $FromPath . '/' . $FromName;
-		$oItem = $oServer->tree->getNodeForPath($sPath);
+		$oItem = \Afterlogic\DAV\Server::getNodeForPath($sPath, $sUserPublicId);
 
 		$oToDirectory = $this->getDirectory($sUserPublicId, $ToType, $ToPath);
 		$bIsSharedFile = ($oItem instanceof SharedFile || $oItem instanceof SharedDirectory);
@@ -534,10 +529,8 @@ class Module extends PersonalFiles
 
 			try
 			{
-				$oServer = \Afterlogic\DAV\Server::getInstance();
-				$oServer->setUser($sUserPiblicId);
 				$sPath = 'files/' . $aArgs['Type'] . $aArgs['Path'] . '/' . $aArgs['Name'];
-				$oNode = $oServer->tree->getNodeForPath($sPath);
+				$oNode = \Afterlogic\DAV\Server::getNodeForPath($sPath, $sUserPiblicId);
 
 				$sExt = \pathinfo($aArgs['Name'], PATHINFO_EXTENSION);
 
