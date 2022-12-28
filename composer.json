@@ -6,6 +6,9 @@
 		"afterlogic/aurora-framework": "~0.10.0",
 		"aws/aws-sdk-php": "3.*"
 	},
+	"autoload": {
+		"classmap": ["/"]
+	},
 	"extra": {
 		"installer-name": "S3Filestorage"
 	}
