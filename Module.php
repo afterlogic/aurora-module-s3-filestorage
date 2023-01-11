@@ -44,6 +44,8 @@ class Module extends PersonalFiles
 	protected $oTenantForDelete = null;
 	protected $oUserForDelete = null;
 
+	protected $sTenantName;
+
 	/***** private functions *****/
 	/**
 	 * Initializes Module.
@@ -162,6 +164,8 @@ class Module extends PersonalFiles
 	 		$oSettings->SetValue('BucketPrefix', $BucketPrefix);
 	 		return $oSettings->Save();
 	 	}
+
+		return false;
 	}
 
 	public function GetUsersFolders($iTenantId)
