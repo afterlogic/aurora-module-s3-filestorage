@@ -12,7 +12,6 @@ use Afterlogic\DAV\FS\Shared\File as SharedFile;
 use Afterlogic\DAV\FS\Shared\Directory as SharedDirectory;
 use Aurora\Api;
 use Aws\S3\S3Client;
-use Aurora\Modules\SharedFiles\Enums\ErrorCodes;
 use Aurora\System\Exceptions\ApiException;
 use Aurora\Modules\PersonalFiles\Module as PersonalFiles;
 
@@ -364,8 +363,12 @@ class Module extends PersonalFiles
 		$oToDirectory = $this->getDirectory($sUserPublicId, $ToType, $ToPath);
 		$bIsSharedFile = ($oItem instanceof SharedFile || $oItem instanceof SharedDirectory);
 		$bIsSharedToDirectory = ($oToDirectory instanceof SharedDirectory);
+		$iNotPossibleToMoveSharedFileToSharedFolder = 0;
+		if (class_exists('\Aurora\Modules\SharedFiles\Enums\ErrorCodes')) {
+			$iNotPossibleToMoveSharedFileToSharedFolder = \Aurora\Modules\SharedFiles\Enums\ErrorCodes::NotPossibleToMoveSharedFileToSharedFolder;
+		}
 		if ($IsMove && $bIsSharedFile && $bIsSharedToDirectory) {
-			throw new ApiException(ErrorCodes::NotPossibleToMoveSharedFileToSharedFolder);
+			throw new ApiException($iNotPossibleToMoveSharedFileToSharedFolder);
 		}
 
 		if (($oItem instanceof SharedFile || $oItem instanceof SharedDirectory) && !$oItem->isInherited())
