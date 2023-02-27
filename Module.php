@@ -272,7 +272,7 @@ class Module extends PersonalFiles
     protected function getBucketForTenant($iIdTenant)
     {
         $mResult = false;
-        $oTenant = \Aurora\Modules\Core\Module::getInstance()->GetTenantUnchecked($iIdTenant);
+        $oTenant = \Aurora\Modules\Core\Module::getInstance()->GetTenantWithoutRoleCheck($iIdTenant);
         if ($oTenant instanceof \Aurora\Modules\Core\Models\Tenant) {
             $mResult = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $oTenant->Name));
         }
@@ -543,7 +543,7 @@ class Module extends PersonalFiles
 
     public function onBeforeDeleteTenant($aArgs, &$mResult)
     {
-        $this->oTenantForDelete = \Aurora\Modules\Core\Module::Decorator()->GetTenantUnchecked($aArgs['TenantId']);
+        $this->oTenantForDelete = \Aurora\Modules\Core\Module::Decorator()->GetTenantWithoutRoleCheck($aArgs['TenantId']);
     }
 
     public function onAfterDeleteTenant($aArgs, &$mResult)
