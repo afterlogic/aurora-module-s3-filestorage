@@ -73,8 +73,10 @@ class Module extends PersonalFiles
             'GetUserByUUID'
         ]);
 
+        $sTenantName = $this->getTenantName();
+        $sTenantName = isset($sTenantName) ? $sTenantName : '';
         $this->sBucketPrefix = $this->getConfig('BucketPrefix');
-        $this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->getTenantName()));
+        $this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $sTenantName));
         $this->sHost = $this->getConfig('Host');
         $this->sRegion = $this->getConfig('Region');
         $this->sAccessKey = $this->getConfig('AccessKey');
