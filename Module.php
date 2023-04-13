@@ -74,13 +74,22 @@ class Module extends PersonalFiles
         ]);
 
         $sTenantName = $this->getTenantName();
-        $sTenantName = isset($sTenantName) ? $sTenantName : '';
+        $sTenantName = $sTenantName ? $sTenantName : '';
         $this->sBucketPrefix = $this->getConfig('BucketPrefix');
         $this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $sTenantName));
         $this->sHost = $this->getConfig('Host');
         $this->sRegion = $this->getConfig('Region');
         $this->sAccessKey = $this->getConfig('AccessKey');
         $this->sSecretKey = $this->getConfig('SecretKey');
+    }
+
+    /**
+     *
+     * @return Module
+     */
+    public static function Decorator()
+    {
+        return parent::Decorator();
     }
 
     public function onAddToContentSecurityPolicyDefault($aArgs, &$aAddDefault)
@@ -196,14 +205,14 @@ class Module extends PersonalFiles
         if (!empty($this->sHost)) {
             $options['endpoint'] = 'https://' . $this->sHost;
         }
-        return new  S3Client($options);
+        return new S3Client($options);
     }
 
     /**
      * Obtains DropBox client if passed $sType is DropBox account type.
      *
-     * @param string $sType Service type.
-     * @return \Dropbox\Client
+     * @param boolean $bRenew
+     * @return S3Client
      */
     protected function getClient($bRenew = false)
     {
@@ -295,7 +304,7 @@ class Module extends PersonalFiles
 
         $oClient = $this->getClient();
 
-        $oObject = $oClient->HeadObject([
+        $oObject = $oClient->headObject([
             'Bucket' => $this->sBucket,
             'Key' => urldecode($sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix)
         ]);
@@ -554,7 +563,7 @@ class Module extends PersonalFiles
             try {
                 $oS3Client = $this->getS3Client();
                 $oS3Client->deleteBucket([
-                    'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', \Afterlogic\DAV\Server::getTenantName($this->oTenantForDelete->Name)))
+                    'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', \Afterlogic\DAV\Server::getTenantName()))
                 ]);
                 $this->oTenantForDelete = null;
             } catch(\Exception $oEx) {
