@@ -526,6 +526,7 @@ class Module extends PersonalFiles
 
             try {
                 $sPath = 'files/' . $aArgs['Type'] . $aArgs['Path'] . '/' . $aArgs['Name'];
+                /** @var \Afterlogic\DAV\FS\S3\File $oNode */
                 $oNode = \Afterlogic\DAV\Server::getNodeForPath($sPath, $sUserPiblicId);
 
                 $sExt = \pathinfo($aArgs['Name'], PATHINFO_EXTENSION);
