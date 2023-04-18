@@ -92,6 +92,15 @@ class Module extends PersonalFiles
         return parent::Decorator();
     }
 
+    /**
+     *
+     * @return Settings
+     */
+    protected function GetModuleSettings()
+    {
+        return $this->oModuleSettings;
+    }
+
     public function onAddToContentSecurityPolicyDefault($aArgs, &$aAddDefault)
     {
         $aAddDefault[] = "https://" . $this->sHost;
