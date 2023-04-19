@@ -22,6 +22,8 @@ use Aurora\Modules\PersonalFiles\Module as PersonalFiles;
  * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
  * @copyright Copyright (c) 2023, Afterlogic Corp.
  *
+ * @property Settings $oModuleSettings
+ *
  * @package Modules
  */
 class Module extends PersonalFiles
@@ -54,7 +56,7 @@ class Module extends PersonalFiles
     public function init()
     {
         $personalFiles = PersonalFiles::getInstance();
-        if ($personalFiles && !$this->getConfig('Disabled', false)) {
+        if ($personalFiles && !$this->oModuleSettings->Disabled) {
             $personalFiles->setConfig('Disabled', true);
         }
 
@@ -75,12 +77,12 @@ class Module extends PersonalFiles
 
         $sTenantName = $this->getTenantName();
         $sTenantName = $sTenantName ? $sTenantName : '';
-        $this->sBucketPrefix = $this->getConfig('BucketPrefix');
+        $this->sBucketPrefix = $this->oModuleSettings->BucketPrefix;
         $this->sBucket = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $sTenantName));
-        $this->sHost = $this->getConfig('Host');
-        $this->sRegion = $this->getConfig('Region');
-        $this->sAccessKey = $this->getConfig('AccessKey');
-        $this->sSecretKey = $this->getConfig('SecretKey');
+        $this->sHost = $this->oModuleSettings->Host;
+        $this->sRegion = $this->oModuleSettings->Region;
+        $this->sAccessKey = $this->oModuleSettings->AccessKey;
+        $this->sSecretKey = $this->oModuleSettings->SecretKey;
     }
 
     /**
@@ -624,8 +626,8 @@ class Module extends PersonalFiles
             $oTenant = \Aurora\System\Api::getTenantById($TenantId);
 
             if ($oTenant) {
-                $AccessKey = $this->getConfig('AccessKey');
-                $SecretKey = $this->getConfig('SecretKey');
+                $AccessKey = $this->oModuleSettings->AccessKey;
+                $SecretKey = $this->oModuleSettings->SecretKey;
             }
         } else {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
