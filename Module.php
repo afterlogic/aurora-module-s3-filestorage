@@ -168,18 +168,19 @@ class Module extends PersonalFiles
             $oTenant = \Aurora\System\Api::getTenantById($TenantId);
 
             if ($oTenant) {
-                $oSettings->SetTenantValue($oTenant->Name, 'Region', $Region);
-                $oSettings->SetTenantValue($oTenant->Name, 'Host', $Host);
-                return $oSettings->SaveTenantSettings($oTenant->Name);
+                return $oSettings->SaveTenantSettings($oTenant->Name, [
+                    'Region' => $Region,
+                    'Host' => $Host
+                ]);
             }
         } else {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-            $oSettings->SetValue('AccessKey', $AccessKey);
-            $oSettings->SetValue('SecretKey', $SecretKey);
-            $oSettings->SetValue('Region', $Region);
-            $oSettings->SetValue('Host', $Host);
-            $oSettings->SetValue('BucketPrefix', $BucketPrefix);
+            $oSettings->AccessKey = $AccessKey;
+            $oSettings->SecretKey = $SecretKey;
+            $oSettings->Region = $Region;
+            $oSettings->Host = $Host;
+            $oSettings->BucketPrefix = $BucketPrefix;
             return $oSettings->Save();
         }
 
