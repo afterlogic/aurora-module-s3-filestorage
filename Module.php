@@ -86,7 +86,14 @@ class Module extends PersonalFiles
     }
 
     /**
-     *
+     * @return Module
+     */
+    public static function getInstance()
+    {
+        return parent::getInstance();
+    }
+
+    /**
      * @return Module
      */
     public static function Decorator()
@@ -95,7 +102,6 @@ class Module extends PersonalFiles
     }
 
     /**
-     *
      * @return Settings
      */
     public function getModuleSettings()
