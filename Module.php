@@ -125,7 +125,8 @@ class Module extends PersonalFiles
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
 
         if (!isset($this->aSettings)) {
-            $oSettings = $this->getModuleSettings();
+            $oSettings = $this->oModuleSettings;
+
             if (!empty($TenantId)) {
                 \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
                 $oTenant = \Aurora\System\Api::getTenantById($TenantId);
@@ -138,11 +139,11 @@ class Module extends PersonalFiles
                 }
             } else {
                 $this->aSettings = [
-                    'AccessKey' => $oSettings->GetValue('AccessKey', ''),
-                    'SecretKey' => $oSettings->GetValue('SecretKey', ''),
-                    'Region' => $oSettings->GetValue('Region', ''),
-                    'Host' => $oSettings->GetValue('Host', ''),
-                    'BucketPrefix' => $oSettings->GetValue('BucketPrefix', ''),
+                    'AccessKey' => $oSettings->AccessKey,
+                    'SecretKey' => $oSettings->SecretKey,
+                    'Region' => $oSettings->Region,
+                    'Host' => $oSettings->Host,
+                    'BucketPrefix' => $oSettings->BucketPrefix,
                 ];
             }
         }
@@ -161,7 +162,7 @@ class Module extends PersonalFiles
       */
     public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
     {
-        $oSettings = $this->getModuleSettings();
+        $oSettings = $this->oModuleSettings;
 
         if (!empty($TenantId)) {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
