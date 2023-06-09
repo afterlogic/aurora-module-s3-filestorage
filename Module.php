@@ -583,7 +583,7 @@ class Module extends PersonalFiles
             try {
                 $oS3Client = $this->getS3Client();
                 $oS3Client->deleteBucket([
-                    'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', \Afterlogic\DAV\Server::getTenantName()))
+                    'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->oTenantForDelete->Name))
                 ]);
                 $this->oTenantForDelete = null;
             } catch(\Exception $oEx) {
