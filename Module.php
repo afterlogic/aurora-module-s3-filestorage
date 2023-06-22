@@ -388,7 +388,7 @@ class Module extends PersonalFiles
 
         if (($oItem instanceof SharedFile || $oItem instanceof SharedDirectory) && !$oItem->isInherited()) {
             $oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
-            $oPdo->updateSharedFileSharePath(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $oItem->getName(), $FromPath, $ToPath, $oItem->getGroupId());
+            $oPdo->updateSharedFileSharePath(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $oItem->getName(), $ToName, $FromPath, $ToPath, $oItem->getGroupId());
 
             $oItem = $oItem->getNode();
         } else {
@@ -406,7 +406,7 @@ class Module extends PersonalFiles
             $oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
             $oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
             if ($IsMove) {
-                $oItem->delete();
+                \Afterlogic\DAV\Server::deleteNode($sPath, $sUserPublicId);
             }
         }
     }
