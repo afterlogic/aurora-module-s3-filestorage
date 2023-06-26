@@ -73,6 +73,12 @@ class Settings extends \Aurora\System\Module\Settings
                 null,
                 "If true, files on S3 storage are obtained via redirect to their actual URLs",
             ),
+            "UsePathStyleEndpoint" => new SettingsProperty(
+                false,
+                "bool",
+                null,
+                "If true, send requests to an S3 path style endpoint"
+            ),
         ];
     }
 }
