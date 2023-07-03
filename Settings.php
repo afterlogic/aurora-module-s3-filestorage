@@ -47,13 +47,13 @@ class Settings extends \Aurora\System\Module\Settings
                 "",
                 "string",
                 null,
-                "S3 storage region",
+                "S3 storage region. For AWS S3, specify region value. For other S3-compatible services, for instance DigitalOcean Spaces, set to us-east-1 .",
             ),
             "Host" => new SettingsProperty(
                 "",
                 "string",
                 null,
-                "S3 storage hostname",
+                "S3 storage hostname. For AWS S3, leave empty. For other S3-compatible services set to your endpoint value (e.g.: nyc1.digitaloceanspaces.com for Digital Ocean Spaces).",
             ),
             "BucketPrefix" => new SettingsProperty(
                 "",
