@@ -151,15 +151,15 @@ class Module extends PersonalFiles
         return $this->aSettings;
     }
 
-     /**
-      * Updates module's settings - saves them to config.json file.
-      * @param string $AccessKey
-      * @param string $SecretKey
-      * @param string $Region
-      * @param string $Host
-      * @param string $BucketPrefix
-      * @return boolean
-      */
+    /**
+     * Updates module's settings - saves them to config.json file.
+     * @param string $AccessKey
+     * @param string $SecretKey
+     * @param string $Region
+     * @param string $Host
+     * @param string $BucketPrefix
+     * @return boolean
+     */
     public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
     {
         $oSettings = $this->oModuleSettings;
@@ -319,7 +319,7 @@ class Module extends PersonalFiles
         $sSuffix = $bIsFolder ? '/' : '';
 
         $sFullFromPath = $this->sBucket . '/' . $sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix;
-        $sFullToPath = $sUserPublicId . $sToPath.'/'.$sNewName . $sSuffix;
+        $sFullToPath = $sUserPublicId . $sToPath . '/' . $sNewName . $sSuffix;
 
         $oClient = $this->getClient();
 
@@ -348,7 +348,7 @@ class Module extends PersonalFiles
             if ($bMove) {
                 $res = $oClient->deleteObject([
                     'Bucket' => $this->sBucket,
-                    'Key' => $sUserPublicId . $sFromPath.'/'.$sOldName . $sSuffix
+                    'Key' => $sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix
                 ]);
             }
             $mResult = true;
