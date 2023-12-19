@@ -190,24 +190,37 @@ class Module extends PersonalFiles
 
     public function GetUsersFolders($iTenantId)
     {
-        $this->sBucket = $this->getBucketForTenant($iTenantId);
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
 
-        $results = $this->getClient(true)->listObjectsV2([
-            'Bucket' => $this->getBucketForTenant($iTenantId),
-            'Prefix' => '',
-            'Delimiter' => '/'
-        ]);
-
-        $aUsersFolders = [];
-        if (is_array($results['CommonPrefixes']) && count($results['CommonPrefixes']) > 0) {
-            foreach ($results['CommonPrefixes'] as $aPrefix) {
-                if (substr($aPrefix['Prefix'], -1) === '/') {
-                    $aUsersFolders[] = \rtrim($aPrefix['Prefix'], '/');
-                }
-            }
+        $oUser = \Aurora\System\Api::getAuthenticatedUser();
+        if ($oUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant !== $iTenantId) {
+            throw new ApiException(\Aurora\System\Notifications::AccessDenied, null, 'AccessDenied');
+        } else {
+            Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
         }
 
-        return $aUsersFolders;
+        if (!empty($iTenantId)) {
+            $this->sBucket = $this->getBucketForTenant($iTenantId);
+
+            $results = $this->getClient(true)->listObjectsV2([
+                'Bucket' => $this->getBucketForTenant($iTenantId),
+                'Prefix' => '',
+                'Delimiter' => '/'
+            ]);
+
+            $aUsersFolders = [];
+            if (is_array($results['CommonPrefixes']) && count($results['CommonPrefixes']) > 0) {
+                foreach ($results['CommonPrefixes'] as $aPrefix) {
+                    if (substr($aPrefix['Prefix'], -1) === '/') {
+                        $aUsersFolders[] = \rtrim($aPrefix['Prefix'], '/');
+                    }
+                }
+            }
+
+            return $aUsersFolders;
+        } else {
+            throw new ApiException(\Aurora\System\Notifications::InvalidInputParameter);
+        }
     }
 
 
