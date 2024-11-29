@@ -39,9 +39,6 @@ class Module extends PersonalFiles
     protected $sHost;
     protected $sAccessKey;
     protected $sSecretKey;
-
-    protected $aSettings = null;
-
     protected $oTenantForDelete = null;
     protected $oUserForDelete = null;
 
@@ -124,31 +121,32 @@ class Module extends PersonalFiles
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
 
-        if (!isset($this->aSettings)) {
-            $oSettings = $this->oModuleSettings;
+        $oSettings = $this->oModuleSettings;
+        $aSettings = [];
+        if (!empty($TenantId)) {
+            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+            $oTenant = \Aurora\System\Api::getTenantById($TenantId);
+            $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
 
-            if (!empty($TenantId)) {
-                \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
-                $oTenant = \Aurora\System\Api::getTenantById($TenantId);
-
-                if ($oTenant) {
-                    $this->aSettings = [
-                        'Region' => $oSettings->GetTenantValue($oTenant->Name, 'Region', ''),
-                        'Host' => $oSettings->GetTenantValue($oTenant->Name, 'Host', ''),
-                    ];
-                }
-            } else {
-                $this->aSettings = [
-                    'AccessKey' => $oSettings->AccessKey,
-                    'SecretKey' => $oSettings->SecretKey,
-                    'Region' => $oSettings->Region,
-                    'Host' => $oSettings->Host,
-                    'BucketPrefix' => $oSettings->BucketPrefix,
+            if ($oTenant && ($oAuthenticatedUser->isAdmin() || $oAuthenticatedUser->IdTenant === $oTenant->Id)) {
+                $aSettings = [
+                    'Region' => $oSettings->GetTenantValue($oTenant->Name, 'Region', ''),
+                    'Host' => $oSettings->GetTenantValue($oTenant->Name, 'Host', ''),
                 ];
             }
+        } else {
+            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+            $aSettings = [
+                'AccessKey' => $oSettings->AccessKey,
+                'SecretKey' => $oSettings->SecretKey,
+                'Region' => $oSettings->Region,
+                'Host' => $oSettings->Host,
+                'BucketPrefix' => $oSettings->BucketPrefix,
+            ];
         }
 
-        return $this->aSettings;
+
+        return $aSettings;
     }
 
     /**
@@ -167,8 +165,9 @@ class Module extends PersonalFiles
         if (!empty($TenantId)) {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
             $oTenant = \Aurora\System\Api::getTenantById($TenantId);
+            $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
 
-            if ($oTenant) {
+            if ($oTenant && ($oAuthenticatedUser->isAdmin() || $oAuthenticatedUser->IdTenant === $oTenant->Id)) {
                 return $oSettings->SaveTenantSettings($oTenant->Name, [
                     'Region' => $Region,
                     'Host' => $Host
