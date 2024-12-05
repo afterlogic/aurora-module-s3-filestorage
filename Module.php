@@ -39,6 +39,7 @@ class Module extends PersonalFiles
     protected $sHost;
     protected $sAccessKey;
     protected $sSecretKey;
+
     protected $oTenantForDelete = null;
     protected $oUserForDelete = null;
 
@@ -114,6 +115,8 @@ class Module extends PersonalFiles
 
     /**
      * Obtains list of module settings for authenticated user.
+     *
+     * @param int|null $TenantId Tenant ID
      *
      * @return array
      */
