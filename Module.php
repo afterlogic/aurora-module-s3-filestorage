@@ -125,28 +125,30 @@ class Module extends PersonalFiles
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
 
         $oSettings = $this->oModuleSettings;
-        $aSettings = [];
-        if (!empty($TenantId)) {
-            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
-            $oTenant = \Aurora\System\Api::getTenantById($TenantId);
-            $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
 
-            if ($oTenant && ($oAuthenticatedUser->isAdmin() || $oAuthenticatedUser->IdTenant === $oTenant->Id)) {
-                $aSettings = [
-                    'Region' => $oSettings->GetTenantValue($oTenant->Name, 'Region', ''),
-                    'Host' => $oSettings->GetTenantValue($oTenant->Name, 'Host', ''),
-                ];
-            }
-        } else {
-            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-            $aSettings = [
-                'AccessKey' => $oSettings->AccessKey,
-                'SecretKey' => $oSettings->SecretKey,
-                'Region' => $oSettings->Region,
-                'Host' => $oSettings->Host,
-                'BucketPrefix' => $oSettings->BucketPrefix,
-            ];
-        }
+        // TODO: temporary desabled getting tenant setting. It must return all settings, not only region and host
+        // $aSettings = [];
+        // if (!empty($TenantId)) {
+        //     \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+        //     $oTenant = \Aurora\System\Api::getTenantById($TenantId);
+        //     $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
+
+        //     if ($oTenant && ($oAuthenticatedUser->isAdmin() || $oAuthenticatedUser->IdTenant === $oTenant->Id)) {
+        //         $aSettings = [
+        //             'Region' => $oSettings->GetTenantValue($oTenant->Name, 'Region', ''),
+        //             'Host' => $oSettings->GetTenantValue($oTenant->Name, 'Host', ''),
+        //         ];
+        //     }
+        // } else {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        $aSettings = [
+            'AccessKey' => $oSettings->AccessKey,
+            'SecretKey' => $oSettings->SecretKey,
+            'Region' => $oSettings->Region,
+            'Host' => $oSettings->Host,
+            'BucketPrefix' => $oSettings->BucketPrefix,
+        ];
+        // }
 
 
         return $aSettings;
@@ -154,40 +156,44 @@ class Module extends PersonalFiles
 
     /**
      * Updates module's settings - saves them to config.json file.
+     *
      * @param string $AccessKey
      * @param string $SecretKey
      * @param string $Region
      * @param string $Host
      * @param string $BucketPrefix
+     * @param int|null $TenantId
+     *
      * @return boolean
      */
     public function UpdateS3Settings($AccessKey, $SecretKey, $Region, $Host, $BucketPrefix, $TenantId = null)
     {
         $oSettings = $this->oModuleSettings;
 
-        if (!empty($TenantId)) {
-            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
-            $oTenant = \Aurora\System\Api::getTenantById($TenantId);
-            $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
+        // TODO: temporary desabled saving tenant setting. It must save all settings, not only region and host
+        // if (!empty($TenantId)) {
+        // \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
+        // $oTenant = \Aurora\System\Api::getTenantById($TenantId);
+        // $oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
 
-            if ($oTenant && ($oAuthenticatedUser->isAdmin() || $oAuthenticatedUser->IdTenant === $oTenant->Id)) {
-                return $oSettings->SaveTenantSettings($oTenant->Name, [
-                    'Region' => $Region,
-                    'Host' => $Host
-                ]);
-            }
-        } else {
-            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        // if ($oTenant && ($oAuthenticatedUser->isAdmin() || $oAuthenticatedUser->IdTenant === $oTenant->Id)) {
+        //     return $oSettings->SaveTenantSettings($oTenant->Name, [
+        //         'Region' => $Region,
+        //         'Host' => $Host
+        //     ]);
+        // }
+        // } else {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-            $oSettings->AccessKey = $AccessKey;
-            $oSettings->SecretKey = $SecretKey;
-            $oSettings->Region = $Region;
-            $oSettings->Host = $Host;
-            $oSettings->BucketPrefix = $BucketPrefix;
-            return $oSettings->Save();
-        }
+        $oSettings->AccessKey = $AccessKey;
+        $oSettings->SecretKey = $SecretKey;
+        $oSettings->Region = $Region;
+        $oSettings->Host = $Host;
+        $oSettings->BucketPrefix = $BucketPrefix;
+        return $oSettings->Save();
+        // }
 
-        return false;
+        // return false;
     }
 
     public function GetUsersFolders($iTenantId)
