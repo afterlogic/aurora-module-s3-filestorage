@@ -262,9 +262,19 @@ class Module extends PersonalFiles
             $this->oClient = $this->getS3Client();
 
             if (!$this->oClient->doesBucketExist($this->sBucket)) {
-                $this->oClient->createBucket([
-                    'Bucket' => $this->sBucket
-                ]);
+                $sBucketLocation = $this->oModuleSettings->BucketLocation;
+
+                $aOptions = [
+                    'Bucket' => $this->sBucket,
+                ];
+
+                if (!empty($sBucketLocation)) {
+                    $aOptions['CreateBucketConfiguration'] = [
+                        'LocationConstraint' => $sBucketLocation,
+                    ];
+                }
+
+                $this->oClient->createBucket($aOptions);
 
                 $res = $this->oClient->putBucketCors([
                     'Bucket' => $this->sBucket,

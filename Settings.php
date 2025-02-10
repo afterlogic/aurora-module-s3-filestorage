@@ -61,6 +61,12 @@ class Settings extends \Aurora\System\Module\Settings
                 null,
                 "Bucket prefix you wish to be used",
             ),
+            "BucketLocation" => new SettingsProperty(
+                "",
+                "string",
+                null,
+                "By specifying a specific location (e.g., EUROPE-WEST6), the bucket will be created as a regional bucket, not a multi-region bucket.",
+            ),
             "PresignedLinkLifetimeMinutes" => new SettingsProperty(
                 60,
                 "int",
