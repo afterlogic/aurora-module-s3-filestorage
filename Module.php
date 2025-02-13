@@ -68,11 +68,6 @@ class Module extends PersonalFiles
 
         $this->subscribeEvent('AddToContentSecurityPolicyDefault', array($this, 'onAddToContentSecurityPolicyDefault'));
 
-        $this->denyMethodsCallByWebApi([
-            'DeleteUserFolder',
-            'GetUserByUUID'
-        ]);
-
         $sTenantName = $this->getTenantName();
         $sTenantName = $sTenantName ? $sTenantName : '';
         $this->sBucketPrefix = $this->oModuleSettings->BucketPrefix;
@@ -560,6 +555,23 @@ class Module extends PersonalFiles
         return $sAction ===  'download';
     }
 
+    protected function deleteUserFolder($IdTenant, $PublicId)
+    {
+        $bResult = false;
+        try {
+            $oS3Client = $this->getS3Client();
+            $res = $oS3Client->deleteMatchingObjects(
+                $this->getBucketForTenant($IdTenant),
+                $PublicId . '/'
+            );
+            $bResult = true;
+        } catch(\Exception $oEx) {
+            $bResult = false;
+        }
+
+        return $bResult;
+    }
+
     /**
      * Puts file content to $mResult.
      * @ignore
@@ -632,27 +644,10 @@ class Module extends PersonalFiles
     public function onAfterDeleteUser($aArgs, $mResult)
     {
         if ($this->oUserForDelete instanceof \Aurora\Modules\Core\Models\User) {
-            if ($this->DeleteUserFolder($this->oUserForDelete->IdTenant, $this->oUserForDelete->PublicId)) {
+            if ($this->deleteUserFolder($this->oUserForDelete->IdTenant, $this->oUserForDelete->PublicId)) {
                 $this->oUserForDelete = null;
             }
         }
-    }
-
-    public function DeleteUserFolder($IdTenant, $PublicId)
-    {
-        $bResult = false;
-        try {
-            $oS3Client = $this->getS3Client();
-            $res = $oS3Client->deleteMatchingObjects(
-                $this->getBucketForTenant($IdTenant),
-                $PublicId . '/'
-            );
-            $bResult = true;
-        } catch(\Exception $oEx) {
-            $bResult = false;
-        }
-
-        return $bResult;
     }
 
     public function TestConnection($Region, $Host, $AccessKey = null, $SecretKey = null, $TenantId = null)
