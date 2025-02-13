@@ -16,8 +16,10 @@ use Aurora\System\SettingsProperty;
  * @property string $Region
  * @property string $Host
  * @property string $BucketPrefix
+ * @property string $BucketLocation
  * @property int $PresignedLinkLifetimeMinutes
  * @property bool $RedirectToOriginalFileURLs
+ * @property bool $UsePathStyleEndpoint
  */
 
 class Settings extends \Aurora\System\Module\Settings
