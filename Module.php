@@ -591,17 +591,22 @@ class Module extends PersonalFiles
                 /** @var \Afterlogic\DAV\FS\S3\File $oNode */
                 $oNode = \Afterlogic\DAV\Server::getNodeForPath($sPath, $sUserPiblicId);
 
-                $sExt = \pathinfo($aArgs['Name'], PATHINFO_EXTENSION);
-
-                $bNoRedirect = (isset($aArgs['NoRedirect']) && $aArgs['NoRedirect']) ? true : false;
-
                 if ($oNode instanceof \Afterlogic\DAV\FS\File) {
+                    $sExt = \pathinfo($aArgs['Name'], PATHINFO_EXTENSION);
+
+                    $oS3FilestorageModule = \Aurora\System\Api::GetModule('S3Filestorage');
+                    $bRedirectToUrl = $oS3FilestorageModule ? $oS3FilestorageModule->getConfig('RedirectToOriginalFileURLs', true) : true;
+    
+                    $bNoRedirect = isset($aArgs['NoRedirect']) ? $aArgs['NoRedirect'] : !$bRedirectToUrl;
+                    
                     if ($this->isNeedToReturnBody() || \strtolower($sExt) === 'url' || $bNoRedirect) {
                         $mResult = $oNode->get(false);
-                    } elseif ($this->isNeedToReturnWithContectDisposition()) {
-                        $oNode->getWithContentDisposition();
                     } else {
-                        $oNode->get(true);
+                        $sUrl = $oNode->getUrl($this->isNeedToReturnWithContectDisposition());
+                        if (!empty($sUrl)) {
+                            \Aurora\System\Api::Location($sUrl);
+                            exit;
+                        }
                     }
                 }
             } catch (\Sabre\DAV\Exception\NotFound $oEx) {
