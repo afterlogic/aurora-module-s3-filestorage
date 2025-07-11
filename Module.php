@@ -28,8 +28,6 @@ use Aurora\Modules\PersonalFiles\Module as PersonalFiles;
  */
 class Module extends PersonalFiles
 {
-    protected $aRequireModules = ['PersonalFiles'];
-
     protected $oClient = null;
     protected $sUserPublicId = null;
 
@@ -427,7 +425,7 @@ class Module extends PersonalFiles
             if (!$bIsSharedToDirectory) {
                 $oItem->copyObjectTo($ToType, $ToPath, $ToName);
             } else {
-                $oToDirectory->createFile($ToName, $oItem->get(false));
+                $oToDirectory->createFile($ToName, $oItem->get());
             }
             $oPdo = new \Afterlogic\DAV\FS\Backend\PDO();
             $oPdo->updateShare(Constants::PRINCIPALS_PREFIX . $sUserPublicId, $FromType, $FromPath . '/' . $FromName, $ToType, $ToPath . '/' . $ToName);
@@ -596,11 +594,11 @@ class Module extends PersonalFiles
 
                     $oS3FilestorageModule = \Aurora\System\Api::GetModule('S3Filestorage');
                     $bRedirectToUrl = $oS3FilestorageModule ? $oS3FilestorageModule->getConfig('RedirectToOriginalFileURLs', true) : true;
-    
+
                     $bNoRedirect = isset($aArgs['NoRedirect']) ? $aArgs['NoRedirect'] : !$bRedirectToUrl;
-                    
+
                     if ($this->isNeedToReturnBody() || \strtolower($sExt) === 'url' || $bNoRedirect) {
-                        $mResult = $oNode->get(false);
+                        $mResult = $oNode->get();
                     } else {
                         $sUrl = $oNode->getUrl($this->isNeedToReturnWithContectDisposition());
                         if (!empty($sUrl)) {
