@@ -602,7 +602,7 @@ class Module extends PersonalFiles
                     } else {
                         $sUrl = $oNode->getUrl($this->isNeedToReturnWithContectDisposition());
                         if (!empty($sUrl)) {
-                            \Aurora\System\Api::Location($sUrl);
+                            @header('Location: ' . $sUrl);
                             exit;
                         }
                     }
