@@ -85,14 +85,6 @@ class Module extends PersonalFiles
     }
 
     /**
-     * @return Module
-     */
-    public static function Decorator()
-    {
-        return parent::Decorator();
-    }
-
-    /**
      * @return Settings
      */
     public function getModuleSettings()
@@ -241,6 +233,27 @@ class Module extends PersonalFiles
         return new S3Client($options);
     }
 
+    protected function getWebServerOrigin()
+    {
+        $sHost = $_SERVER['SERVER_NAME'] ?? '';
+        if ($sHost === '' || !preg_match('/^[a-zA-Z0-9\.\-]+$/', $sHost)) {
+            return null;
+        }
+        return (\Aurora\System\Api::isHttps() ? 'https' : 'http') . '://' . $sHost;
+    }
+
+    protected function getTenantOrigin()
+    {
+        $oTenant = \Aurora\System\Api::getCurrentTenant();
+        if ($oTenant instanceof \Aurora\Modules\Core\Models\Tenant && !empty($oTenant->WebDomain)) {
+            $sHost = $oTenant->WebDomain;
+            if (preg_match('/^[a-zA-Z0-9\.\-]+$/', $sHost)) {
+                return (\Aurora\System\Api::isHttps() ? 'https' : 'http') . '://' . $sHost;
+            }
+        }
+        return null;
+    }
+
     /**
      * Obtains DropBox client if passed $sType is DropBox account type.
      *
@@ -284,9 +297,7 @@ class Module extends PersonalFiles
                                     'DELETE',
                                     'HEAD'
                                 ],
-                                'AllowedOrigins' => [
-                                    (\Aurora\System\Api::isHttps() ? "https" : "http") . "://" . $_SERVER['HTTP_HOST']
-                                ],
+                                'AllowedOrigins' => $this->getTenantOrigin() ? [$this->getTenantOrigin()] : ($this->getWebServerOrigin() ? [$this->getWebServerOrigin()] : []),
                                 'MaxAgeSeconds' => 0,
                             ],
                         ],
