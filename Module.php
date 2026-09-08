@@ -186,9 +186,10 @@ class Module extends PersonalFiles
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::TenantAdmin);
 
         $oUser = \Aurora\System\Api::getAuthenticatedUser();
+
+        // TenantAdmin may access folders only within their own tenant.
+        // Accessing another tenant requires SuperAdmin privileges.
         if ($oUser->Role === \Aurora\System\Enums\UserRole::TenantAdmin && $oUser->IdTenant !== $iTenantId) {
-            throw new ApiException(\Aurora\System\Notifications::AccessDenied, null, 'AccessDenied');
-        } else {
             Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
         }
 
