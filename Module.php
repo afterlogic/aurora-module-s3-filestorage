@@ -28,6 +28,12 @@ use Aurora\Modules\PersonalFiles\Module as PersonalFiles;
  */
 class Module extends PersonalFiles
 {
+    /**
+     * Placeholder returned instead of the real SecretKey by GetSettings(). UpdateS3Settings()
+     * treats an incoming value equal to this mask as "unchanged" and keeps the stored secret.
+     */
+    protected const SECRET_KEY_MASK = '********';
+
     protected $oClient = null;
     protected $sUserPublicId = null;
 
@@ -128,7 +134,7 @@ class Module extends PersonalFiles
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
         $aSettings = [
             'AccessKey' => $oSettings->AccessKey,
-            'SecretKey' => $oSettings->SecretKey,
+            'SecretKey' => $oSettings->SecretKey !== '' ? self::SECRET_KEY_MASK : '',
             'Region' => $oSettings->Region,
             'Host' => $oSettings->Host,
             'BucketPrefix' => $oSettings->BucketPrefix,
@@ -171,7 +177,11 @@ class Module extends PersonalFiles
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
         $oSettings->AccessKey = $AccessKey;
-        $oSettings->SecretKey = $SecretKey;
+        // The client echoes the mask back untouched when the admin didn't retype the secret;
+        // only overwrite the stored key when a real value was submitted.
+        if ($SecretKey !== self::SECRET_KEY_MASK) {
+            $oSettings->SecretKey = $SecretKey;
+        }
         $oSettings->Region = $Region;
         $oSettings->Host = $Host;
         $oSettings->BucketPrefix = $BucketPrefix;
@@ -680,6 +690,12 @@ class Module extends PersonalFiles
             }
         } else {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+
+            // The client sends back the mask untouched when the admin didn't retype the
+            // secret; resolve it to the stored key so testing an already-saved config works.
+            if ($SecretKey === self::SECRET_KEY_MASK) {
+                $SecretKey = $this->oModuleSettings->SecretKey;
+            }
         }
         try {
             $options = [
