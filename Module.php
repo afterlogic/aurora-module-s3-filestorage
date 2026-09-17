@@ -600,6 +600,15 @@ class Module extends PersonalFiles
     protected function deleteUserFolder($IdTenant, $PublicId)
     {
         $bResult = false;
+
+        // deleteMatchingObjects() batch-deletes every object whose key starts with this prefix.
+        // An empty/blank PublicId would turn the prefix into just "/" (or "" if trim() weren't
+        // applied upstream), matching far more than the one user's folder it's meant to scope to.
+        if (!is_string($PublicId) || trim($PublicId) === '' || strpbrk($PublicId, "/\\") !== false) {
+            Api::LogException(new \Exception('deleteUserFolder: refusing to delete with an empty or unsafe PublicId'));
+            return $bResult;
+        }
+
         try {
             $oS3Client = $this->getS3Client();
             $res = $oS3Client->deleteMatchingObjects(
