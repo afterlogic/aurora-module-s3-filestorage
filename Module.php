@@ -777,7 +777,27 @@ class Module extends PersonalFiles
             }
             $s3Client = new S3Client($options);
 
-            $buckets = $s3Client->listBuckets();
+            // headBucket() only needs s3:ListBucket on this one bucket instead of the
+            // account-wide s3:ListAllMyBuckets that listBuckets() requires -- and unlike
+            // listBuckets(), it can't hand back the names of every other bucket/tenant
+            // sharing the same S3 account.
+            $sBucket = isset($TenantId) ? $this->getBucketForTenant($TenantId) : $this->sBucket;
+
+            if ($sBucket) {
+                try {
+                    $s3Client->headBucket(['Bucket' => $sBucket]);
+                } catch (\Aws\S3\Exception\S3Exception $oS3Ex) {
+                    // The bucket not existing yet isn't a connectivity/credentials problem --
+                    // getClient() creates it on first real use.
+                    if ($oS3Ex->getStatusCode() !== 404) {
+                        throw $oS3Ex;
+                    }
+                }
+            } else {
+                // No specific bucket to target (e.g. testing the global default config with
+                // no tenant context yet) -- fall back to a plain connectivity check.
+                $s3Client->listBuckets();
+            }
         } catch(\Exception $e) {
             $mResult = false;
             Api::LogException($e);
