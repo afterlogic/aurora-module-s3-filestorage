@@ -276,6 +276,8 @@ class Module extends PersonalFiles
         if ($this->oClient === null || $bRenew) {
             \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
 
+            $this->assertValidBucketName($this->sBucket);
+
             $this->oClient = $this->getS3Client();
 
             if (!$this->oClient->doesBucketExist($this->sBucket)) {
@@ -351,9 +353,25 @@ class Module extends PersonalFiles
         $oTenant = \Aurora\Api::getTenantById($iIdTenant);
         if ($oTenant instanceof \Aurora\Modules\Core\Models\Tenant) {
             $mResult = \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $oTenant->Name));
+            $this->assertValidBucketName($mResult);
         }
 
         return $mResult;
+    }
+
+    /**
+     * Validates a bucket name against the AWS S3 naming rules (lowercase letters, digits,
+     * dots and hyphens, 3-63 chars, must start/end with a letter or digit) before it is used
+     * in any S3 API call, since BucketPrefix/tenant name are admin-controlled free text that
+     * would otherwise be concatenated into the bucket name unchecked.
+     *
+     * @throws ApiException when the name doesn't satisfy AWS's constraints
+     */
+    protected function assertValidBucketName($sBucket)
+    {
+        if (!\is_string($sBucket) || !\preg_match('/^[a-z0-9][a-z0-9.\-]{1,61}[a-z0-9]$/', $sBucket)) {
+            throw new ApiException(\Aurora\System\Notifications::InvalidInputParameter, null, 'InvalidInputParameter');
+        }
     }
 
     protected function copyObject($sFromPath, $sToPath, $sOldName, $sNewName, $bIsFolder = false, $bMove = false)
@@ -651,7 +669,7 @@ class Module extends PersonalFiles
             try {
                 $oS3Client = $this->getS3Client();
                 $oS3Client->deleteBucket([
-                    'Bucket' => \strtolower($this->sBucketPrefix . \str_replace([' ', '.'], '-', $this->oTenantForDelete->Name))
+                    'Bucket' => $this->getBucketForTenant($this->oTenantForDelete->Id)
                 ]);
                 $this->oTenantForDelete = null;
             } catch(\Exception $oEx) {
