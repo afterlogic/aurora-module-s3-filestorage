@@ -338,7 +338,10 @@ class Module extends PersonalFiles
                                         'HEAD'
                                     ],
                                     'AllowedOrigins' => $this->getTenantOrigin() ? [$this->getTenantOrigin()] : ($this->getWebServerOrigin() ? [$this->getWebServerOrigin()] : []),
-                                    'MaxAgeSeconds' => 0,
+                                    // 0 forces the browser to redo an OPTIONS preflight before
+                                    // every single request; caching it for an hour cuts that
+                                    // round-trip for the vast majority of actual requests.
+                                    'MaxAgeSeconds' => 3600,
                                 ],
                             ],
                         ],
