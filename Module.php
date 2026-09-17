@@ -609,6 +609,7 @@ class Module extends PersonalFiles
             $bResult = true;
         } catch(\Exception $oEx) {
             $bResult = false;
+            Api::LogException($oEx);
         }
 
         return $bResult;
@@ -677,6 +678,7 @@ class Module extends PersonalFiles
                 ]);
                 $this->oTenantForDelete = null;
             } catch(\Exception $oEx) {
+                Api::LogException($oEx);
             }
         }
     }
