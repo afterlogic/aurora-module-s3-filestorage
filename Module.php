@@ -389,7 +389,11 @@ class Module extends PersonalFiles
 
         $oObject = $oClient->headObject([
             'Bucket' => $this->sBucket,
-            'Key' => urldecode($sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix)
+            // Not urldecode()'d: $sOldName/$sFromPath are already plain strings here, and
+            // decoding them could turn an encoded "%2e%2e%2f" into a literal "../" — plus it
+            // must match the same raw key used below for copyObject()/deleteObject(), or this
+            // existence/metadata check silently looks at a different object than the one moved.
+            'Key' => $sUserPublicId . $sFromPath . '/' . $sOldName . $sSuffix
         ]);
 
         $aMetadata = [];
