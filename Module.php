@@ -266,6 +266,25 @@ class Module extends PersonalFiles
     }
 
     /**
+     * How long a "bucket exists" check result is trusted for before doesBucketExist() (and,
+     * if needed, createBucket()/putBucketCors()) is asked to confirm it again. The bucket
+     * essentially never disappears on its own, so re-checking on every renewed client (up to
+     * 3 network round-trips) is pure overhead once we've already seen it exists.
+     */
+    protected const BUCKET_EXISTS_CACHE_TTL = 3600;
+
+    protected function isBucketVerifiedRecently($sBucket)
+    {
+        $iVerifiedAt = (new \Aurora\System\Managers\Cache('s3filestorage'))->get('bucket-exists:' . $sBucket);
+        return is_int($iVerifiedAt) && (time() - $iVerifiedAt) < self::BUCKET_EXISTS_CACHE_TTL;
+    }
+
+    protected function markBucketVerified($sBucket)
+    {
+        (new \Aurora\System\Managers\Cache('s3filestorage'))->set('bucket-exists:' . $sBucket, time());
+    }
+
+    /**
      * Obtains DropBox client if passed $sType is DropBox account type.
      *
      * @param boolean $bRenew
@@ -280,43 +299,47 @@ class Module extends PersonalFiles
 
             $this->oClient = $this->getS3Client();
 
-            if (!$this->oClient->doesBucketExist($this->sBucket)) {
-                $sBucketLocation = $this->oModuleSettings->BucketLocation;
+            if (!$this->isBucketVerifiedRecently($this->sBucket)) {
+                if (!$this->oClient->doesBucketExist($this->sBucket)) {
+                    $sBucketLocation = $this->oModuleSettings->BucketLocation;
 
-                $aOptions = [
-                    'Bucket' => $this->sBucket,
-                ];
-
-                if (!empty($sBucketLocation)) {
-                    $aOptions['CreateBucketConfiguration'] = [
-                        'LocationConstraint' => $sBucketLocation,
+                    $aOptions = [
+                        'Bucket' => $this->sBucket,
                     ];
-                }
 
-                $this->oClient->createBucket($aOptions);
+                    if (!empty($sBucketLocation)) {
+                        $aOptions['CreateBucketConfiguration'] = [
+                            'LocationConstraint' => $sBucketLocation,
+                        ];
+                    }
 
-                $res = $this->oClient->putBucketCors([
-                    'Bucket' => $this->sBucket,
-                    'CORSConfiguration' => [
-                        'CORSRules' => [
-                            [
-                                'AllowedHeaders' => [
-                                    '*',
+                    $this->oClient->createBucket($aOptions);
+
+                    $res = $this->oClient->putBucketCors([
+                        'Bucket' => $this->sBucket,
+                        'CORSConfiguration' => [
+                            'CORSRules' => [
+                                [
+                                    'AllowedHeaders' => [
+                                        '*',
+                                    ],
+                                    'AllowedMethods' => [
+                                        'GET',
+                                        'PUT',
+                                        'POST',
+                                        'DELETE',
+                                        'HEAD'
+                                    ],
+                                    'AllowedOrigins' => $this->getTenantOrigin() ? [$this->getTenantOrigin()] : ($this->getWebServerOrigin() ? [$this->getWebServerOrigin()] : []),
+                                    'MaxAgeSeconds' => 0,
                                 ],
-                                'AllowedMethods' => [
-                                    'GET',
-                                    'PUT',
-                                    'POST',
-                                    'DELETE',
-                                    'HEAD'
-                                ],
-                                'AllowedOrigins' => $this->getTenantOrigin() ? [$this->getTenantOrigin()] : ($this->getWebServerOrigin() ? [$this->getWebServerOrigin()] : []),
-                                'MaxAgeSeconds' => 0,
                             ],
                         ],
-                    ],
-                    'ContentMD5' => '',
-                ]);
+                        'ContentMD5' => '',
+                    ]);
+                }
+
+                $this->markBucketVerified($this->sBucket);
             }
         }
 
