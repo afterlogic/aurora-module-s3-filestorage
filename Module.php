@@ -236,7 +236,14 @@ class Module extends PersonalFiles
             'credentials' => [
                 'key'    => $this->sAccessKey,
                 'secret' => $this->sSecretKey,
-            ]
+            ],
+            // Without this the SDK still retries a couple of times on connection failures,
+            // but not on S3 throttling (SlowDown/429) or 5xx responses, which is exactly what
+            // shows up under load. 'standard' mode adds exponential backoff with jitter.
+            'retries' => [
+                'mode' => 'standard',
+                'max_attempts' => 5,
+            ],
         ];
         if (!empty($this->sHost)) {
             $options['endpoint'] = 'https://' . $this->sHost;
